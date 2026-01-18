@@ -2,8 +2,13 @@ package sts.ai.bridge;
 
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
+import basemod.BaseMod;
+import basemod.interfaces.PostUpdateSubscriber;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
+import com.megacrit.cardcrawl.actions.GameActionManager;
+import com.megacrit.cardcrawl.actions.common.EndTurnAction;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
+import com.megacrit.cardcrawl.rooms.AbstractRoom;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import sts.ai.state.v1.GameAction;
@@ -213,12 +218,38 @@ public class StsAIBridge {
             if (AbstractDungeon.player == null) {
                 return;
             }
+            GameActionManager manager = AbstractDungeon.actionManager;
+            if (manager == null) {
+                return;
+            }
+            if (manager.phase != GameActionManager.Phase.WAITING_ON_USER || !manager.actions.isEmpty()) {
+                return;
+            }
             GameAction action;
             while ((action = actionQueue.poll()) != null) {
                 System.out.println("[STS-AI-ACTION] 准备执行队列中的动作: " + action.toString());
+                if ("END_TURN".equals(action.getActionType())) {
+                    AbstractRoom room = AbstractDungeon.getCurrRoom();
+                    if (room != null
+                            && room.phase == AbstractRoom.RoomPhase.COMBAT
+                            && !manager.turnHasEnded) {
+                        System.out.println("[STS-AI-DEBUG] 执行结束回合时手牌数: " + AbstractDungeon.player.hand.size());
+                        System.out.println("[STS-AI-ACTION] 执行 END_TURN 动作");
+                        AbstractDungeon.overlayMenu.endTurnButton.disable(true);
+                        AbstractDungeon.player.isEndingTurn = true;
+                        manager.addToBottom(new EndTurnAction());
+                        return;
+                    } else {
+                        System.out.println("[STS-AI-ACTION] 忽略 END_TURN 动作（非战斗或非玩家回合 / 状态不稳定）");
+                    }
+                }
             }
             long now = System.currentTimeMillis();
-            if (now - lastLogTime >= LOG_INTERVAL_MS) {
+            if (now - lastLogTime >= LOG_INTERVAL_MS
+                    && manager.phase == GameActionManager.Phase.WAITING_ON_USER
+                    && manager.actions.isEmpty()
+                    && !AbstractDungeon.player.isEndingTurn
+                    && AbstractDungeon.getCurrRoom().phase == AbstractRoom.RoomPhase.COMBAT) {
                 lastLogTime = now;
                 PlayerState playerState = PlayerState.newBuilder()
                         .setHp(AbstractDungeon.player.currentHealth)
