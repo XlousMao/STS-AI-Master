@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+// 包名：确保跨语言生成的类不冲突
+package sts.ai.protocol.v1;
+
+// 游戏状态数据结构（Java Mod → Python/Qt 传输）
+message GameState {
+    string md5_seed = 1;          // 场景唯一标识，用于PER错题集训练
+    string character = 2;         // 角色名称（如 Ironclad）
+    int32 act = 3;                // 当前章节
+    int32 floor = 4;              // 当前楼层
+    int32 player_hp = 5;          // 玩家当前血量
+    int32 player_max_hp = 6;      // 玩家最大血量
+    int32 player_energy = 7;      // 玩家当前能量
+    repeated string hand_cards = 8; // 手牌列表
+    repeated int32 valid_actions = 9; // 合法动作ID列表（动作空间剪枝核心）
+    string stage = 10;            // 游戏阶段：BATTLE, REWARD, SHOP等
+}
+
+// 动作指令数据结构（Python/Qt → Java Mod 传输）
+message ActionCommand {
+    string action_type = 1;       // 动作类型：play_card, select_card, end_turn
+    int32 action_id = 2;          // 动作ID
+}
+
+// 顶层通信消息（包含所有核心控制字段）
+message ProtocolMessage {
+    string message_type = 1;      // 消息类型：UPDATE_STATE, EXECUTE_ACTION
+    int32 sequence_id = 2;        // 递增序列号，防指令错位（死锁防护点1）
+    bool is_waiting_for_input = 3;// 是否等待玩家输入（死锁防护点2）
+    GameState game_state = 4;     // 状态数据
+    ActionCommand action_cmd = 5; // 动作指令
+    int64 timestamp = 6;          // 时间戳（毫秒），用于超时判断
+}

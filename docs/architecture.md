@@ -26,7 +26,7 @@ STS-AI-Master/ (Root)
 
 ├── training-engine/ # 阶段1：Python 训练工程
 
-│ ├── envs/ # Gym 环境封装
+│ ├── envs/ # G Gymnasium 环境封装
 
 │ ├── models/ # 训练好的模型（.pth/.onnx）
 
