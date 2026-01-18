@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package sts.ai.state.v1;
+
+option java_package = "sts.ai.state.v1";
+option java_multiple_files = true;
+
+message PlayerState {
+  int32 hp = 1;
+  int32 max_hp = 2;
+  int32 gold = 3;
+  int32 energy = 4;
+  int32 block = 5;
+  int32 floor = 6;
+}
+
+message MonsterState {
+  string id = 1;
+  string name = 2;
+  int32 hp = 3;
+  int32 max_hp = 4;
+  string intent = 5;
+  int32 block = 6;
+}
+
+message GameState {
+  PlayerState player = 1;
+  repeated MonsterState monsters = 2;
+}
+

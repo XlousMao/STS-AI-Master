@@ -3,8 +3,12 @@ package sts.ai.bridge;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
+import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import sts.ai.state.v1.GameState;
+import sts.ai.state.v1.MonsterState;
+import sts.ai.state.v1.PlayerState;
 
 /**
  * STS-AI Bridge Mod 入口类。
@@ -79,13 +83,37 @@ public class StsAIBridge {
                 return;
             }
             lastLogTime = now;
-            String msg = "[STS-AI] Player HP=" + AbstractDungeon.player.currentHealth
-                    + ", Gold=" + AbstractDungeon.player.gold;
-            if (logger != null) {
-                logger.info(msg);
-            } else {
-                System.out.println(msg);
+            PlayerState playerState = PlayerState.newBuilder()
+                    .setHp(AbstractDungeon.player.currentHealth)
+                    .setMaxHp(AbstractDungeon.player.maxHealth)
+                    .setGold(AbstractDungeon.player.gold)
+                    .setEnergy(AbstractDungeon.player.energy.energy)
+                    .setBlock(AbstractDungeon.player.currentBlock)
+                    .setFloor(AbstractDungeon.floorNum)
+                    .build();
+
+            GameState.Builder gameStateBuilder = GameState.newBuilder()
+                    .setPlayer(playerState);
+
+            if (AbstractDungeon.getMonsters() != null && AbstractDungeon.getMonsters().monsters != null) {
+                for (AbstractMonster m : AbstractDungeon.getMonsters().monsters) {
+                    if (m == null) {
+                        continue;
+                    }
+                    MonsterState monsterState = MonsterState.newBuilder()
+                            .setId(m.id)
+                            .setName(m.name)
+                            .setHp(m.currentHealth)
+                            .setMaxHp(m.maxHealth)
+                            .setIntent(m.intent != null ? m.intent.name() : "")
+                            .setBlock(m.currentBlock)
+                            .build();
+                    gameStateBuilder.addMonsters(monsterState);
+                }
             }
+
+            GameState gameState = gameStateBuilder.build();
+            System.out.println("[STS-AI-PROTO] " + gameState.toString());
         }
     }
 }
