@@ -124,3 +124,74 @@
 - 使用延迟初始化 + System.out 回退策略，成功绕开早期日志系统未就绪导致的 NullPointerException。
 - 通过 system scope 引入本地依赖（BaseMod、StSLib 等），实现与原版游戏及核心 Mod 的基本联调，为后续接入 Protobuf 协议与 RL 训练引擎奠定基础。
 
+---
+
+## 六、阶段 0 收官日志（2026-01-18 / v1.0.1）
+
+- 版本号：v1.0.1  
+- 任务类别：协议扩展 + 训练环境准备
+
+### 工作成果
+
+1. 协议层扩展
+   - 在 `protobuf/sts_state.proto` 中补充 `GameOutcome`、`GameState.master_deck`、`GameState.game_outcome` 字段。
+   - 为 `CardState`、`RelicState`、`PotionState` 预留 `price` 字段，用于后续训练中的购买决策建模。
+   - 基于这些字段整理了《环境缺漏自查与补全报告》，对数据缺口与补全情况做系统梳理。
+
+2. Java 桥接层增强
+   - 为 Socket 服务引入 `-Dsts.ai.port` 动态端口配置，解除 9999 端口硬编码限制，支持多实例并行训练。
+   - 新增 `RESET` 动作处理分支，统一通过 `CardCrawlGame.startOver = true` 实现死亡后的快速重开。
+   - 扩充数据采样范围：在战斗流程中采集 Master Deck、当前楼层的结算结果（胜利 / 死亡、分数、进阶等级）、商店可购买物品的价格占位信息。
+   - 对关键行为增加结构化日志前缀（如 `[STS-AI-SOCKET]`、`[STS-AI-ACTION]`），方便跨进程排障。
+
+3. 工具链与环境
+   - 新增 `tools/launch_headless.sh`，封装无头模式启动参数，支持：
+     - 按需指定端口：`./tools/launch_headless.sh 10001`。
+     - 默认加载 `basemod, stslib, sts-ai-bridge` 三个 Mod。
+   - 经联调验证，当前环境已达到 “Pre-Gymnasium Ready” 状态，可直接接入 Python 侧 Gymnasium 封装。
+
+### 关键问题与解决方案
+
+1. 端口硬编码导致并行训练冲突
+   - 现象：第二个无头实例启动时，日志报 `Address already in use: JVM_Bind`，且 Python 客户端无法连接新实例。
+   - 排查思路：
+     - 在 `StsAIBridge` 中搜索 `new ServerSocket(9999)`，确认端口为硬编码。
+     - 通过 `netstat -ano | findstr 9999` 观察已有占用。
+   - 解决方案：
+     - 将端口读取逻辑改为 `System.getProperty("sts.ai.port", "9999")`，提供默认值并对非法输入打印告警日志。
+   - 验证方式：
+     - 分别启动两个实例：`-Dsts.ai.port=10001`、`-Dsts.ai.port=10002`，观察控制台是否正确输出不同的监听端口。
+     - 在 Python 端分别连接对应端口，确认无冲突。
+
+2. RESET 动作实现方式选择错误
+   - 现象：尝试调用 `CardCrawlGame.startNewRun()` 时，编译阶段报方法不存在或签名不匹配。
+   - 排查思路：
+     - 使用 IDE 直接跳转到 `CardCrawlGame`，确认可用 API。
+     - 通过反编译原版 `desktop-1.0.jar`，核对实际提供的重开机制。
+   - 解决方案：
+     - 放弃直接调用不存在的方法，改为使用现有的 `CardCrawlGame.startOver` 标志位，由游戏主循环驱动新一局的启动。
+   - 验证方式：
+     - 在处理 `RESET` 分支前后打印日志 `[STS-AI-ACTION] 执行 RESET 动作`。
+     - 游戏内手动启动一局，触发 RESET 后观察是否自动返回主菜单并开始新 Run。
+
+3. 游戏结果与分数获取路径不清晰
+   - 现象：早期尝试直接调用 `DeathScreen.calcScore()` 等内部方法，存在访问权限或依赖 UI 状态的问题。
+   - 排查思路：
+     - 在 `DEATH`、`VICTORY` 屏幕出现时，通过日志打印 `AbstractDungeon.floorNum`、`AbstractDungeon.ascensionLevel` 等核心字段。
+     - 检查是否存在稳定、无需额外 UI 状态的分数来源。
+   - 解决方案：
+     - 当前版本采用简化计算逻辑：以楼层数与进阶等级近似估算分数，并通过 `GameOutcome` 结构对外暴露。
+     - 在日志中明确标注这是 “近似得分”，为后续精确还原留出空间。
+   - 验证方式：
+     - 在不同难度与楼层结束战斗，比较日志中的估算分数与游戏结算界面的实际分数，评估偏差并记录样本。
+
+4. 商店与药水价格字段缺失
+   - 现象：在为 `PotionState.price`、`CardState.price`、`RelicState.price` 赋值时，发现 `AbstractPotion` 等类缺少公开的 `price` 字段或访问受限。
+   - 排查思路：
+     - 使用 IDE 结构视图或反编译类文件，确认价格相关字段是否为 `private` / `protected`。
+     - 在不修改权限的前提下尝试通过现有 API 获取价格，验证是否可行。
+   - 解决方案：
+     - 当前版本中仅在协议层预留价格字段，对部分无法直接访问的字段暂不赋值，并在代码中通过日志注明“待 AccessTransformer 支持”。
+   - 验证方式：
+     - 进入商店场景，检查日志中关于商店物品序列化的输出，确认不会因价格字段访问失败导致崩溃。
+     - 后续在引入 AccessTransformer 后再次补充验证用例。

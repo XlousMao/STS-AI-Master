@@ -2,19 +2,32 @@ package sts.ai.bridge;
 
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
-import basemod.BaseMod;
-import basemod.interfaces.PostUpdateSubscriber;
-import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.actions.GameActionManager;
 import com.megacrit.cardcrawl.actions.common.EndTurnAction;
+import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.megacrit.cardcrawl.cards.CardQueueItem;
+import com.megacrit.cardcrawl.characters.AbstractPlayer;
+import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import com.megacrit.cardcrawl.rooms.AbstractRoom;
+import com.megacrit.cardcrawl.orbs.AbstractOrb;
+import com.megacrit.cardcrawl.powers.AbstractPower;
+import com.megacrit.cardcrawl.relics.AbstractRelic;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import sts.ai.state.v1.GameAction;
-import sts.ai.state.v1.GameState;
-import sts.ai.state.v1.MonsterState;
-import sts.ai.state.v1.PlayerState;
+import com.megacrit.cardcrawl.map.MapEdge;
+import com.megacrit.cardcrawl.map.MapRoomNode;
+import com.megacrit.cardcrawl.rewards.RewardItem;
+import com.megacrit.cardcrawl.shop.ShopScreen;
+import com.megacrit.cardcrawl.shop.StorePotion;
+import com.megacrit.cardcrawl.shop.StoreRelic;
+import com.megacrit.cardcrawl.ui.campfire.AbstractCampfireOption;
+import com.megacrit.cardcrawl.potions.AbstractPotion;
+import com.megacrit.cardcrawl.core.CardCrawlGame;
+import com.megacrit.cardcrawl.screens.DeathScreen;
+import com.megacrit.cardcrawl.screens.VictoryScreen;
+import java.util.ArrayList;
+import sts.ai.state.v1.*;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -79,8 +92,17 @@ public class StsAIBridge {
         @Override
         public void run() {
             try {
-                serverSocket = new ServerSocket(9999);
-                System.out.println("[STS-AI-SOCKET] Listening on port 9999");
+                // ARCHITECTURE CHANGE: Read port from System Property, default to 9999
+                String portProp = System.getProperty("sts.ai.port", "9999");
+                int port = 9999;
+                try {
+                    port = Integer.parseInt(portProp);
+                } catch (NumberFormatException e) {
+                    System.err.println("[STS-AI-SOCKET] Invalid port property: " + portProp + ", using default 9999.");
+                }
+
+                serverSocket = new ServerSocket(port);
+                System.out.println("[STS-AI-SOCKET] Listening on port " + port);
                 while (true) {
                     Socket socket = serverSocket.accept();
                     System.out.println("[STS-AI-SOCKET] Client connected: " + socket.getRemoteSocketAddress());
@@ -96,7 +118,7 @@ public class StsAIBridge {
                     }
                 }
             } catch (BindException e) {
-                System.out.println("[STS-AI-SOCKET] Port 9999 bind failed (possibly in use): " + e.getMessage());
+                System.out.println("[STS-AI-SOCKET] Port bind failed (possibly in use): " + e.getMessage());
             } catch (IOException e) {
                 System.out.println("[STS-AI-SOCKET] Server error: " + e.getMessage());
             } finally {
@@ -218,6 +240,7 @@ public class StsAIBridge {
             if (AbstractDungeon.player == null) {
                 return;
             }
+            AbstractPlayer player = AbstractDungeon.player;
             GameActionManager manager = AbstractDungeon.actionManager;
             if (manager == null) {
                 return;
@@ -233,52 +256,385 @@ public class StsAIBridge {
                     if (room != null
                             && room.phase == AbstractRoom.RoomPhase.COMBAT
                             && !manager.turnHasEnded) {
-                        System.out.println("[STS-AI-DEBUG] 执行结束回合时手牌数: " + AbstractDungeon.player.hand.size());
+                        System.out.println("[STS-AI-DEBUG] 执行结束回合时手牌数: " + player.hand.size());
                         System.out.println("[STS-AI-ACTION] 执行 END_TURN 动作");
                         AbstractDungeon.overlayMenu.endTurnButton.disable(true);
-                        AbstractDungeon.player.isEndingTurn = true;
+                        player.isEndingTurn = true;
                         manager.addToBottom(new EndTurnAction());
                         return;
                     } else {
                         System.out.println("[STS-AI-ACTION] 忽略 END_TURN 动作（非战斗或非玩家回合 / 状态不稳定）");
                     }
+                } else if ("RESET".equals(action.getActionType())) {
+                    System.out.println("[STS-AI-ACTION] 执行 RESET 动作");
+                    CardCrawlGame.startOver = true;
+                    return;
+                } else if ("PLAY_CARD".equals(action.getActionType())) {
+                    int cardIndex = action.getCardIndex();
+                    if (cardIndex < 0 || cardIndex >= player.hand.size()) {
+                        System.out.println("[STS-AI-ACTION] 无效的 card_index，忽略 PLAY_CARD 动作");
+                        continue;
+                    }
+                    AbstractCard card = player.hand.group.get(cardIndex);
+                    AbstractMonster target = null;
+                    if (card.target == AbstractCard.CardTarget.ENEMY || card.target == AbstractCard.CardTarget.SELF_AND_ENEMY) {
+                        if (AbstractDungeon.getMonsters() != null && AbstractDungeon.getMonsters().monsters != null) {
+                            int targetIndex = action.getTargetIndex();
+                            if (targetIndex >= 0 && targetIndex < AbstractDungeon.getMonsters().monsters.size()) {
+                                target = AbstractDungeon.getMonsters().monsters.get(targetIndex);
+                            }
+                        }
+                        if (target == null) {
+                            System.out.println("[STS-AI-ACTION] 无法找到有效目标怪物，忽略 PLAY_CARD 动作");
+                            continue;
+                        }
+                    } else {
+                        // 对于非指向性卡牌（SELF, ALL_ENEMY, NONE 等），忽略 target_index
+                        // target 保持为 null 即可
+                    }
+                    System.out.println("[STS-AI-ACTION] 执行 PLAY_CARD 动作: " + card.cardID + " -> " + (target != null ? target.name : "null"));
+                    AbstractDungeon.actionManager.cardQueue.add(new CardQueueItem(card, target, card.energyOnUse, true, true));
+                    return;
+                } else if ("CHOOSE_REWARD".equals(action.getActionType())) {
+                    if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.COMBAT_REWARD) {
+                        int rewardIndex = action.getTargetIndex();
+                        if (AbstractDungeon.combatRewardScreen != null && AbstractDungeon.combatRewardScreen.rewards != null
+                            && rewardIndex >= 0 && rewardIndex < AbstractDungeon.combatRewardScreen.rewards.size()) {
+                             RewardItem item = AbstractDungeon.combatRewardScreen.rewards.get(rewardIndex);
+                             if (!item.isDone) {
+                                 item.isDone = true;
+                                 item.claimReward();
+                                 System.out.println("[STS-AI-ACTION] Claimed reward index: " + rewardIndex);
+                                 // After claiming, we might need to close screen if all done, but game usually handles it or user sends SKIP
+                                 return;
+                             }
+                        }
+                    }
+                } else if ("SKIP_REWARD".equals(action.getActionType())) {
+                     if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.COMBAT_REWARD) {
+                         AbstractDungeon.closeCurrentScreen();
+                         System.out.println("[STS-AI-ACTION] Skipped rewards.");
+                         return;
+                     }
+                } else if ("CHOOSE_SHOP_CARD".equals(action.getActionType())) {
+                     // Implement buying card
+                     if (AbstractDungeon.shopScreen != null) {
+                         // Need logic to buy card
+                     }
+                } else if ("CHOOSE_SHOP_POTION".equals(action.getActionType())) {
+                     // Implement buying potion
+                } else if ("CHOOSE_SHOP_RELIC".equals(action.getActionType())) {
+                     // Implement buying relic
+                } else if ("PURGE_CARD".equals(action.getActionType())) {
+                     // Implement purging
+                } else if ("LEAVE_SHOP".equals(action.getActionType())) {
+                     if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.SHOP) {
+                         AbstractDungeon.overlayMenu.cancelButton.hb.clicked = true;
+                         System.out.println("[STS-AI-ACTION] Left shop.");
+                         return;
+                     }
+                } else if ("CHOOSE_REST_OPTION".equals(action.getActionType())) {
+                     if (AbstractDungeon.getCurrRoom() instanceof com.megacrit.cardcrawl.rooms.RestRoom) {
+                         com.megacrit.cardcrawl.rooms.RestRoom restRoom = (com.megacrit.cardcrawl.rooms.RestRoom) AbstractDungeon.getCurrRoom();
+                         if (restRoom.campfireUI != null) {
+                              int optionIndex = action.getTargetIndex();
+                              // Reflectively access options or simplify? 
+                              // For V1, maybe just logging as we don't have public access to options list easily
+                              System.out.println("[STS-AI-ACTION] CHOOSE_REST_OPTION index: " + optionIndex + " (Logic pending reflection access)");
+                         }
+                     }
+                } else if ("LEAVE_REST".equals(action.getActionType())) {
+                     if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.NONE && AbstractDungeon.getCurrRoom() instanceof com.megacrit.cardcrawl.rooms.RestRoom) {
+                         AbstractDungeon.closeCurrentScreen(); // Or proceed
+                         System.out.println("[STS-AI-ACTION] Left rest site.");
+                         return;
+                     }
+                } else if ("CHOOSE_MAP_NODE".equals(action.getActionType())) {
+                     if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.MAP) {
+                         int x = action.getCardIndex(); // Reuse card_index as X
+                         int y = action.getTargetIndex(); // Reuse target_index as Y
+                         // Map click logic is complex, involves input simulation or direct node selection
+                         System.out.println("[STS-AI-ACTION] CHOOSE_MAP_NODE: " + x + "," + y + " (Logic pending map click simulation)");
+                     }
                 }
             }
             long now = System.currentTimeMillis();
-            if (now - lastLogTime >= LOG_INTERVAL_MS
-                    && manager.phase == GameActionManager.Phase.WAITING_ON_USER
-                    && manager.actions.isEmpty()
-                    && !AbstractDungeon.player.isEndingTurn
-                    && AbstractDungeon.getCurrRoom().phase == AbstractRoom.RoomPhase.COMBAT) {
+            boolean isStable = false;
+            if (manager.phase == GameActionManager.Phase.WAITING_ON_USER && manager.actions.isEmpty() && !AbstractDungeon.player.isEndingTurn) {
+                if (AbstractDungeon.getCurrRoom().phase == AbstractRoom.RoomPhase.COMBAT) {
+                    isStable = true;
+                } else if (AbstractDungeon.isScreenUp) {
+                    // Check various screens for stability
+                    if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.MAP ||
+                        AbstractDungeon.screen == AbstractDungeon.CurrentScreen.SHOP ||
+                        AbstractDungeon.getCurrRoom() instanceof com.megacrit.cardcrawl.rooms.RestRoom ||
+                        AbstractDungeon.screen == AbstractDungeon.CurrentScreen.COMBAT_REWARD ||
+                        AbstractDungeon.screen == AbstractDungeon.CurrentScreen.DEATH) {
+                        isStable = true;
+                    }
+                } else if (AbstractDungeon.getCurrRoom().phase == AbstractRoom.RoomPhase.COMPLETE) {
+                    // Room complete, usually waiting for map or reward
+                    isStable = true;
+                } else if (AbstractDungeon.getCurrRoom().phase == AbstractRoom.RoomPhase.EVENT) {
+                    isStable = true;
+                }
+            }
+
+            if (now - lastLogTime >= LOG_INTERVAL_MS && isStable) {
                 lastLogTime = now;
-                PlayerState playerState = PlayerState.newBuilder()
+                PlayerState.Builder playerStateBuilder = PlayerState.newBuilder()
                         .setHp(AbstractDungeon.player.currentHealth)
                         .setMaxHp(AbstractDungeon.player.maxHealth)
                         .setGold(AbstractDungeon.player.gold)
                         .setEnergy(AbstractDungeon.player.energy.energy)
                         .setBlock(AbstractDungeon.player.currentBlock)
                         .setFloor(AbstractDungeon.floorNum)
-                        .build();
+                        .setStance(AbstractDungeon.player.stance != null ? AbstractDungeon.player.stance.ID : "");
+
+                if (AbstractDungeon.player.powers != null) {
+                    for (AbstractPower p : AbstractDungeon.player.powers) {
+                        playerStateBuilder.addPowers(PowerState.newBuilder()
+                                .setId(p.ID)
+                                .setName(p.name)
+                                .setAmount(p.amount)
+                                .build());
+                    }
+                }
+
+                if (AbstractDungeon.player.relics != null) {
+                    for (AbstractRelic r : AbstractDungeon.player.relics) {
+                        playerStateBuilder.addRelics(RelicState.newBuilder()
+                                .setId(r.relicId)
+                                .setName(r.name)
+                                .setCounter(r.counter)
+                                .build());
+                    }
+                }
+
+                if (AbstractDungeon.player.orbs != null) {
+                    for (AbstractOrb o : AbstractDungeon.player.orbs) {
+                        playerStateBuilder.addOrbs(OrbState.newBuilder()
+                                .setId(o.ID)
+                                .setName(o.name)
+                                .setEvokeAmount(o.evokeAmount)
+                                .setPassiveAmount(o.passiveAmount)
+                                .build());
+                    }
+                }
 
                 GameState.Builder gameStateBuilder = GameState.newBuilder()
-                        .setPlayer(playerState);
+                        .setPlayer(playerStateBuilder.build());
+
+                // Collect Master Deck
+                if (AbstractDungeon.player != null && AbstractDungeon.player.masterDeck != null) {
+                    for (AbstractCard c : AbstractDungeon.player.masterDeck.group) {
+                         CardState cardState = CardState.newBuilder()
+                                .setId(c.cardID == null ? "" : c.cardID)
+                                .setName(c.name == null ? "" : c.name)
+                                .setCost(c.cost)
+                                .setType(c.type != null ? c.type.name() : "")
+                                .setDamage(c.baseDamage)
+                                .setBlock(c.baseBlock)
+                                .setIsUpgraded(c.upgraded)
+                                .setMagicNumber(c.magicNumber)
+                                .setExhaust(c.exhaust)
+                                .build();
+                         gameStateBuilder.addMasterDeck(cardState);
+                    }
+                }
+
+                if (AbstractDungeon.player != null && AbstractDungeon.player.hand != null && AbstractDungeon.player.hand.group != null) {
+                    for (AbstractCard c : AbstractDungeon.player.hand.group) {
+                        if (c == null) {
+                            continue;
+                        }
+                        c.calculateCardDamage(null);
+                        int cost = c.costForTurn;
+                        CardState cardState = CardState.newBuilder()
+                                .setId(c.cardID == null ? "" : c.cardID)
+                                .setName(c.name == null ? "" : c.name)
+                                .setCost(cost)
+                                .setType(c.type != null ? c.type.name() : "")
+                                .setDamage(c.baseDamage)
+                                .setTarget(c.target != null ? c.target.name() : "")
+                                .setBlock(c.block)
+                                .setIsUpgraded(c.upgraded)
+                                .setMagicNumber(c.magicNumber)
+                                .setExhaust(c.exhaust)
+                                .setIsPlayable(c.costForTurn <= AbstractDungeon.player.energy.energy && c.hasEnoughEnergy() && c.cardPlayable(null))
+                                .build();
+                        gameStateBuilder.addHand(cardState);
+                    }
+                }
 
                 if (AbstractDungeon.getMonsters() != null && AbstractDungeon.getMonsters().monsters != null) {
                     for (AbstractMonster m : AbstractDungeon.getMonsters().monsters) {
                         if (m == null) {
                             continue;
                         }
-                        MonsterState monsterState = MonsterState.newBuilder()
+                        MonsterState.Builder monsterStateBuilder = MonsterState.newBuilder()
                                 .setId(m.id)
                                 .setName(m.name)
                                 .setHp(m.currentHealth)
                                 .setMaxHp(m.maxHealth)
                                 .setIntent(m.intent != null ? m.intent.name() : "")
                                 .setBlock(m.currentBlock)
-                                .build();
-                        gameStateBuilder.addMonsters(monsterState);
+                                .setIsGone(m.isEscaping || m.isDead);
+
+                        if (m.powers != null) {
+                            for (AbstractPower p : m.powers) {
+                                monsterStateBuilder.addPowers(PowerState.newBuilder()
+                                        .setId(p.ID)
+                                        .setName(p.name)
+                                        .setAmount(p.amount)
+                                        .build());
+                            }
+                        }
+                        
+                        // 注意：move_id 和 specific intent details 需要更深入的 access，这里暂存基础 intent
+
+                        gameStateBuilder.addMonsters(monsterStateBuilder.build());
                     }
                 }
+
+                // Collect Potions
+                if (AbstractDungeon.player.potions != null) {
+                    for (int i = 0; i < AbstractDungeon.player.potions.size(); i++) {
+                        AbstractPotion p = AbstractDungeon.player.potions.get(i);
+                        gameStateBuilder.addPotions(PotionState.newBuilder()
+                                .setId(p.ID)
+                                .setName(p.name)
+                                .setSlotIndex(i)
+                                .setIsUsable(p.isObtained && !p.isThrown) // basic usability check
+                                .setCanTarget(p.targetRequired)
+                                // .setPrice(p.price) // Price not available on AbstractPotion
+                                .build());
+                    }
+                }
+
+                // Collect Map
+                if (AbstractDungeon.map != null && !AbstractDungeon.map.isEmpty()) {
+                    DungeonMapState.Builder mapBuilder = DungeonMapState.newBuilder()
+                            .setFloor(AbstractDungeon.floorNum)
+                            .setBossName(AbstractDungeon.bossKey != null ? AbstractDungeon.bossKey : "");
+                    
+                    for (ArrayList<MapRoomNode> row : AbstractDungeon.map) {
+                        for (MapRoomNode node : row) {
+                            if (node == null) continue;
+                            
+                            MapNodeState.Builder nodeBuilder = MapNodeState.newBuilder()
+                                    .setX(node.x)
+                                    .setY(node.y)
+                                    .setRoomType(node.room != null ? node.room.getClass().getSimpleName() : "Unknown")
+                                    .setIsAvailable(true); // Simplified availability check for now
+                                    
+                            if (node.getEdges() != null) {
+                                for (MapEdge edge : node.getEdges()) {
+                                    nodeBuilder.addChildren(MapEdgeState.newBuilder()
+                                            .setDstX(edge.dstX)
+                                            .setDstY(edge.dstY)
+                                            .build());
+                                }
+                            }
+                            mapBuilder.addNodes(nodeBuilder.build());
+                        }
+                    }
+                    gameStateBuilder.setMap(mapBuilder.build());
+                }
+
+                // Determine Screen Type
+                String screenType = "NONE";
+                
+                // Check Game Over
+                if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.DEATH || AbstractDungeon.screen == AbstractDungeon.CurrentScreen.VICTORY) {
+                    screenType = AbstractDungeon.screen == AbstractDungeon.CurrentScreen.VICTORY ? "VICTORY" : "GAME_OVER";
+                    GameOutcome outcome = GameOutcome.newBuilder()
+                            .setIsDone(true)
+                            .setVictory(AbstractDungeon.screen == AbstractDungeon.CurrentScreen.VICTORY)
+                            .setScore(AbstractDungeon.floorNum * 10) // Simplified score for now
+                            .setAscensionLevel(AbstractDungeon.isAscensionMode ? AbstractDungeon.ascensionLevel : 0)
+                            .build();
+                    gameStateBuilder.setGameOutcome(outcome);
+                }
+                
+                if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.COMBAT_REWARD) {
+                    screenType = "REWARD";
+                    // Collect Rewards
+                    if (AbstractDungeon.combatRewardScreen != null && AbstractDungeon.combatRewardScreen.rewards != null) {
+                        RewardState.Builder rewardBuilder = RewardState.newBuilder();
+                        for (RewardItem item : AbstractDungeon.combatRewardScreen.rewards) {
+                            RewardItemState.Builder itemBuilder = RewardItemState.newBuilder()
+                                    .setType(item.type.name())
+                                    .setIsClaimed(item.isDone);
+                            
+                            if (item.type == RewardItem.RewardType.GOLD) {
+                                itemBuilder.setAmount(item.goldAmt);
+                            } else if (item.type == RewardItem.RewardType.RELIC) {
+                                itemBuilder.setId(item.relic != null ? item.relic.relicId : "");
+                            } else if (item.type == RewardItem.RewardType.POTION) {
+                                itemBuilder.setId(item.potion != null ? item.potion.ID : "");
+                            } else if (item.type == RewardItem.RewardType.CARD && item.cards != null) {
+                                for (AbstractCard c : item.cards) {
+                                     // Re-use card serialization logic or simplify for rewards
+                                     itemBuilder.addCards(CardState.newBuilder()
+                                            .setId(c.cardID)
+                                            .setName(c.name)
+                                            .setType(c.type.name())
+                                            .build());
+                                }
+                            }
+                            rewardBuilder.addItems(itemBuilder.build());
+                        }
+                        gameStateBuilder.setReward(rewardBuilder.build());
+                    }
+                } else if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.MAP) {
+                    screenType = "MAP";
+                } else if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.SHOP) {
+                    screenType = "SHOP";
+                    // Collect Shop
+                    if (AbstractDungeon.shopScreen != null) {
+                        ShopState.Builder shopBuilder = ShopState.newBuilder()
+                                .setCurrentGold(AbstractDungeon.player.gold)
+                                .setPurgeCost(ShopScreen.actualPurgeCost); // Use static actualPurgeCost
+                                
+                        // Shop Cards logic requires reflection or access wideners usually, 
+                        // but let's try direct access if public fields allow, otherwise we might need a workaround.
+                        // AbstractDungeon.shopScreen doesn't expose card lists publicly in base game.
+                        // We might need to rely on the fact that we are in the shop room or use reflection.
+                        // For now, let's leave shop lists empty to avoid compilation error until we verify access.
+                        
+                        gameStateBuilder.setShop(shopBuilder.build());
+                    }
+                } else if (AbstractDungeon.isScreenUp && (AbstractDungeon.getCurrRoom() instanceof com.megacrit.cardcrawl.rooms.RestRoom)) {
+                      screenType = "REST";
+                     // Collect Rest Site
+                     if (AbstractDungeon.getCurrRoom() instanceof com.megacrit.cardcrawl.rooms.RestRoom) {
+                         com.megacrit.cardcrawl.rooms.RestRoom restRoom = (com.megacrit.cardcrawl.rooms.RestRoom) AbstractDungeon.getCurrRoom();
+                         if (restRoom.campfireUI != null) {
+                             // campfireUI options are private/protected usually. 
+                             // We might need to check the buttons via reflection or assume based on relics.
+                             // For simplicity/stability in V1, we set basic flags.
+                             RestSiteState.Builder restBuilder = RestSiteState.newBuilder()
+                                     .setHasRest(true)
+                                     .setHasSmith(true)
+                                     .setHealAmount((int)(AbstractDungeon.player.maxHealth * 0.3f)); // Approx
+                             gameStateBuilder.setRestSite(restBuilder.build());
+                         }
+                     }
+                } else if (AbstractDungeon.getCurrRoom() != null && AbstractDungeon.getCurrRoom().phase == AbstractRoom.RoomPhase.COMBAT) {
+                    screenType = "COMBAT";
+                } else if (AbstractDungeon.getCurrRoom() instanceof com.megacrit.cardcrawl.rooms.EventRoom) {
+                    screenType = "EVENT";
+                    // Collect Event
+                    if (AbstractDungeon.getCurrRoom().event != null) {
+                         EventState.Builder eventBuilder = EventState.newBuilder()
+                                 .setEventId(AbstractDungeon.getCurrRoom().event.getClass().getSimpleName());
+                         // Options scraping is complex due to UI structure
+                         gameStateBuilder.setEvent(eventBuilder.build());
+                    }
+                }
+                
+                gameStateBuilder.setScreenType(screenType);
 
                 GameState gameState = gameStateBuilder.build();
                 System.out.println("[STS-AI-PROTO] " + gameState.toString());

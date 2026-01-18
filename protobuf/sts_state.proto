@@ -5,6 +5,26 @@ package sts.ai.state.v1;
 option java_package = "sts.ai.state.v1";
 option java_multiple_files = true;
 
+message PowerState {
+  string id = 1;
+  string name = 2;
+  int32 amount = 3;
+}
+
+message RelicState {
+  string id = 1;
+  string name = 2;
+  int32 counter = 3;
+  int32 price = 4; // For shop relics
+}
+
+message OrbState {
+  string id = 1;
+  string name = 2;
+  int32 evoke_amount = 3;
+  int32 passive_amount = 4;
+}
+
 message PlayerState {
   int32 hp = 1;
   int32 max_hp = 2;
@@ -12,6 +32,10 @@ message PlayerState {
   int32 energy = 4;
   int32 block = 5;
   int32 floor = 6;
+  repeated PowerState powers = 7;
+  repeated RelicState relics = 8;
+  string stance = 9;
+  repeated OrbState orbs = 10;
 }
 
 message MonsterState {
@@ -21,11 +45,108 @@ message MonsterState {
   int32 max_hp = 4;
   string intent = 5;
   int32 block = 6;
+  repeated PowerState powers = 7;
+  int32 move_id = 8;
+  bool is_gone = 9;
+}
+
+message CardState {
+  string id = 1;
+  string name = 2;
+  int32 cost = 3;
+  string type = 4;
+  int32 damage = 5;
+  string target = 6;
+  int32 block = 7;
+  bool is_upgraded = 8;
+  int32 magic_number = 9;
+  bool exhaust = 10;
+  bool is_playable = 11;
+  int32 price = 12; // For shop cards
+}
+
+message PotionState {
+  string id = 1;
+  string name = 2;
+  int32 slot_index = 3;
+  bool is_usable = 4;
+  bool can_target = 5;
+  int32 price = 6; // For shop potions
+}
+
+message DungeonMapState {
+  int32 floor = 1;
+  repeated MapNodeState nodes = 2;
+  string boss_name = 3;
+}
+
+message MapNodeState {
+  int32 x = 1;
+  int32 y = 2;
+  string room_type = 3; // "REST", "SHOP", "MONSTER", "ELITE", "EVENT", "TREASURE", "BOSS"
+  bool is_available = 4;
+  repeated MapEdgeState children = 5;
+}
+
+message MapEdgeState {
+  int32 dst_x = 1;
+  int32 dst_y = 2;
+}
+
+message ShopState {
+  repeated CardState cards = 1;
+  repeated RelicState relics = 2;
+  repeated PotionState potions = 3;
+  int32 purge_cost = 4;
+  int32 current_gold = 5;
+}
+
+message RestSiteState {
+  bool has_rest = 1;
+  bool has_smith = 2;
+  bool has_lift = 3;
+  bool has_toke = 4;
+  bool has_dig = 5;
+  int32 heal_amount = 6;
+}
+
+message EventState {
+  string event_id = 1;
+  repeated string options = 2;
+}
+
+message RewardState {
+  repeated RewardItemState items = 1;
+}
+
+message RewardItemState {
+  string type = 1; // "CARD", "GOLD", "RELIC", "POTION"
+  int32 amount = 2; // For gold
+  string id = 3; // For relic/potion ID
+  repeated CardState cards = 4; // For card rewards
+  bool is_claimed = 5;
+}
+
+message GameOutcome {
+  bool is_done = 1;
+  bool victory = 2;
+  int32 score = 3;
+  int32 ascension_level = 4;
 }
 
 message GameState {
   PlayerState player = 1;
   repeated MonsterState monsters = 2;
+  repeated CardState hand = 3;
+  repeated CardState master_deck = 11; // Global deck
+  repeated PotionState potions = 4;
+  DungeonMapState map = 5;
+  ShopState shop = 6;
+  RestSiteState rest_site = 7;
+  EventState event = 8;
+  RewardState reward = 9;
+  string screen_type = 10; 
+  GameOutcome game_outcome = 12;
 }
 
 message GameAction {

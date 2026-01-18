@@ -19,10 +19,155 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\017sts.ai.state.v1P\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0fsts_state.proto\x12\x0fsts.ai.state.v1\"e\n\x0bPlayerState\x12\n\n\x02hp\x18\x01 \x01(\x05\x12\x0e\n\x06max_hp\x18\x02 \x01(\x05\x12\x0c\n\x04gold\x18\x03 \x01(\x05\x12\x0e\n\x06\x65nergy\x18\x04 \x01(\x05\x12\r\n\x05\x62lock\x18\x05 \x01(\x05\x12\r\n\x05\x66loor\x18\x06 \x01(\x05\"c\n\x0cMonsterState\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\n\n\x02hp\x18\x03 \x01(\x05\x12\x0e\n\x06max_hp\x18\x04 \x01(\x05\x12\x0e\n\x06intent\x18\x05 \x01(\t\x12\r\n\x05\x62lock\x18\x06 \x01(\x05\"j\n\tGameState\x12,\n\x06player\x18\x01 \x01(\x0b\x32\x1c.sts.ai.state.v1.PlayerState\x12/\n\x08monsters\x18\x02 \x03(\x0b\x32\x1d.sts.ai.state.v1.MonsterState\"K\n\nGameAction\x12\x13\n\x0b\x61\x63tion_type\x18\x01 \x01(\t\x12\x12\n\ncard_index\x18\x02 \x01(\x05\x12\x14\n\x0ctarget_index\x18\x03 \x01(\x05\x42\x13\n\x0fsts.ai.state.v1P\x01\x62\x06proto3'
+  serialized_pb=b'\n\x0fsts_state.proto\x12\x0fsts.ai.state.v1\"6\n\nPowerState\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06\x61mount\x18\x03 \x01(\x05\"7\n\nRelicState\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0f\n\x07\x63ounter\x18\x03 \x01(\x05\"R\n\x08OrbState\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x14\n\x0c\x65voke_amount\x18\x03 \x01(\x05\x12\x16\n\x0epassive_amount\x18\x04 \x01(\x05\"\xf8\x01\n\x0bPlayerState\x12\n\n\x02hp\x18\x01 \x01(\x05\x12\x0e\n\x06max_hp\x18\x02 \x01(\x05\x12\x0c\n\x04gold\x18\x03 \x01(\x05\x12\x0e\n\x06\x65nergy\x18\x04 \x01(\x05\x12\r\n\x05\x62lock\x18\x05 \x01(\x05\x12\r\n\x05\x66loor\x18\x06 \x01(\x05\x12+\n\x06powers\x18\x07 \x03(\x0b\x32\x1b.sts.ai.state.v1.PowerState\x12+\n\x06relics\x18\x08 \x03(\x0b\x32\x1b.sts.ai.state.v1.RelicState\x12\x0e\n\x06stance\x18\t \x01(\t\x12\'\n\x04orbs\x18\n \x03(\x0b\x32\x19.sts.ai.state.v1.OrbState\"\xb2\x01\n\x0cMonsterState\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\n\n\x02hp\x18\x03 \x01(\x05\x12\x0e\n\x06max_hp\x18\x04 \x01(\x05\x12\x0e\n\x06intent\x18\x05 \x01(\t\x12\r\n\x05\x62lock\x18\x06 \x01(\x05\x12+\n\x06powers\x18\x07 \x03(\x0b\x32\x1b.sts.ai.state.v1.PowerState\x12\x0f\n\x07move_id\x18\x08 \x01(\x05\x12\x0f\n\x07is_gone\x18\t \x01(\x08\"\xc1\x01\n\tCardState\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04\x63ost\x18\x03 \x01(\x05\x12\x0c\n\x04type\x18\x04 \x01(\t\x12\x0e\n\x06\x64\x61mage\x18\x05 \x01(\x05\x12\x0e\n\x06target\x18\x06 \x01(\t\x12\r\n\x05\x62lock\x18\x07 \x01(\x05\x12\x13\n\x0bis_upgraded\x18\x08 \x01(\x08\x12\x14\n\x0cmagic_number\x18\t \x01(\x05\x12\x0f\n\x07\x65xhaust\x18\n \x01(\x08\x12\x13\n\x0bis_playable\x18\x0b \x01(\x08\"b\n\x0bPotionState\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x12\n\nslot_index\x18\x03 \x01(\x05\x12\x11\n\tis_usable\x18\x04 \x01(\x08\x12\x12\n\ncan_target\x18\x05 \x01(\x08\"a\n\x0f\x44ungeonMapState\x12\r\n\x05\x66loor\x18\x01 \x01(\x05\x12,\n\x05nodes\x18\x02 \x03(\x0b\x32\x1d.sts.ai.state.v1.MapNodeState\x12\x11\n\tboss_name\x18\x03 \x01(\t\"~\n\x0cMapNodeState\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\x12\x11\n\troom_type\x18\x03 \x01(\t\x12\x14\n\x0cis_available\x18\x04 \x01(\x08\x12/\n\x08\x63hildren\x18\x05 \x03(\x0b\x32\x1d.sts.ai.state.v1.MapEdgeState\",\n\x0cMapEdgeState\x12\r\n\x05\x64st_x\x18\x01 \x01(\x05\x12\r\n\x05\x64st_y\x18\x02 \x01(\x05\"\xbc\x01\n\tShopState\x12)\n\x05\x63\x61rds\x18\x01 \x03(\x0b\x32\x1a.sts.ai.state.v1.CardState\x12+\n\x06relics\x18\x02 \x03(\x0b\x32\x1b.sts.ai.state.v1.RelicState\x12-\n\x07potions\x18\x03 \x03(\x0b\x32\x1c.sts.ai.state.v1.PotionState\x12\x12\n\npurge_cost\x18\x04 \x01(\x05\x12\x14\n\x0c\x63urrent_gold\x18\x05 \x01(\x05\"~\n\rRestSiteState\x12\x10\n\x08has_rest\x18\x01 \x01(\x08\x12\x11\n\thas_smith\x18\x02 \x01(\x08\x12\x10\n\x08has_lift\x18\x03 \x01(\x08\x12\x10\n\x08has_toke\x18\x04 \x01(\x08\x12\x0f\n\x07has_dig\x18\x05 \x01(\x08\x12\x13\n\x0bheal_amount\x18\x06 \x01(\x05\"/\n\nEventState\x12\x10\n\x08\x65vent_id\x18\x01 \x01(\t\x12\x0f\n\x07options\x18\x02 \x03(\t\">\n\x0bRewardState\x12/\n\x05items\x18\x01 \x03(\x0b\x32 .sts.ai.state.v1.RewardItemState\"z\n\x0fRewardItemState\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x05\x12\n\n\x02id\x18\x03 \x01(\t\x12)\n\x05\x63\x61rds\x18\x04 \x03(\x0b\x32\x1a.sts.ai.state.v1.CardState\x12\x12\n\nis_claimed\x18\x05 \x01(\x08\"\xbe\x03\n\tGameState\x12,\n\x06player\x18\x01 \x01(\x0b\x32\x1c.sts.ai.state.v1.PlayerState\x12/\n\x08monsters\x18\x02 \x03(\x0b\x32\x1d.sts.ai.state.v1.MonsterState\x12(\n\x04hand\x18\x03 \x03(\x0b\x32\x1a.sts.ai.state.v1.CardState\x12-\n\x07potions\x18\x04 \x03(\x0b\x32\x1c.sts.ai.state.v1.PotionState\x12-\n\x03map\x18\x05 \x01(\x0b\x32 .sts.ai.state.v1.DungeonMapState\x12(\n\x04shop\x18\x06 \x01(\x0b\x32\x1a.sts.ai.state.v1.ShopState\x12\x31\n\trest_site\x18\x07 \x01(\x0b\x32\x1e.sts.ai.state.v1.RestSiteState\x12*\n\x05\x65vent\x18\x08 \x01(\x0b\x32\x1b.sts.ai.state.v1.EventState\x12,\n\x06reward\x18\t \x01(\x0b\x32\x1c.sts.ai.state.v1.RewardState\x12\x13\n\x0bscreen_type\x18\n \x01(\t\"K\n\nGameAction\x12\x13\n\x0b\x61\x63tion_type\x18\x01 \x01(\t\x12\x12\n\ncard_index\x18\x02 \x01(\x05\x12\x14\n\x0ctarget_index\x18\x03 \x01(\x05\x42\x13\n\x0fsts.ai.state.v1P\x01\x62\x06proto3'
 )
 
 
+
+
+_POWERSTATE = _descriptor.Descriptor(
+  name='PowerState',
+  full_name='sts.ai.state.v1.PowerState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='sts.ai.state.v1.PowerState.id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='name', full_name='sts.ai.state.v1.PowerState.name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='amount', full_name='sts.ai.state.v1.PowerState.amount', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=36,
+  serialized_end=90,
+)
+
+
+_RELICSTATE = _descriptor.Descriptor(
+  name='RelicState',
+  full_name='sts.ai.state.v1.RelicState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='sts.ai.state.v1.RelicState.id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='name', full_name='sts.ai.state.v1.RelicState.name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='counter', full_name='sts.ai.state.v1.RelicState.counter', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=92,
+  serialized_end=147,
+)
+
+
+_ORBSTATE = _descriptor.Descriptor(
+  name='OrbState',
+  full_name='sts.ai.state.v1.OrbState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='sts.ai.state.v1.OrbState.id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='name', full_name='sts.ai.state.v1.OrbState.name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='evoke_amount', full_name='sts.ai.state.v1.OrbState.evoke_amount', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='passive_amount', full_name='sts.ai.state.v1.OrbState.passive_amount', index=3,
+      number=4, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=149,
+  serialized_end=231,
+)
 
 
 _PLAYERSTATE = _descriptor.Descriptor(
@@ -75,6 +220,34 @@ _PLAYERSTATE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='powers', full_name='sts.ai.state.v1.PlayerState.powers', index=6,
+      number=7, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='relics', full_name='sts.ai.state.v1.PlayerState.relics', index=7,
+      number=8, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='stance', full_name='sts.ai.state.v1.PlayerState.stance', index=8,
+      number=9, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='orbs', full_name='sts.ai.state.v1.PlayerState.orbs', index=9,
+      number=10, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -87,8 +260,8 @@ _PLAYERSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=36,
-  serialized_end=137,
+  serialized_start=234,
+  serialized_end=482,
 )
 
 
@@ -142,6 +315,27 @@ _MONSTERSTATE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='powers', full_name='sts.ai.state.v1.MonsterState.powers', index=6,
+      number=7, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='move_id', full_name='sts.ai.state.v1.MonsterState.move_id', index=7,
+      number=8, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_gone', full_name='sts.ai.state.v1.MonsterState.is_gone', index=8,
+      number=9, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -154,8 +348,573 @@ _MONSTERSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=139,
-  serialized_end=238,
+  serialized_start=485,
+  serialized_end=663,
+)
+
+
+_CARDSTATE = _descriptor.Descriptor(
+  name='CardState',
+  full_name='sts.ai.state.v1.CardState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='sts.ai.state.v1.CardState.id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='name', full_name='sts.ai.state.v1.CardState.name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='cost', full_name='sts.ai.state.v1.CardState.cost', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='type', full_name='sts.ai.state.v1.CardState.type', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='damage', full_name='sts.ai.state.v1.CardState.damage', index=4,
+      number=5, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='target', full_name='sts.ai.state.v1.CardState.target', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='block', full_name='sts.ai.state.v1.CardState.block', index=6,
+      number=7, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_upgraded', full_name='sts.ai.state.v1.CardState.is_upgraded', index=7,
+      number=8, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='magic_number', full_name='sts.ai.state.v1.CardState.magic_number', index=8,
+      number=9, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='exhaust', full_name='sts.ai.state.v1.CardState.exhaust', index=9,
+      number=10, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_playable', full_name='sts.ai.state.v1.CardState.is_playable', index=10,
+      number=11, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=666,
+  serialized_end=859,
+)
+
+
+_POTIONSTATE = _descriptor.Descriptor(
+  name='PotionState',
+  full_name='sts.ai.state.v1.PotionState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='sts.ai.state.v1.PotionState.id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='name', full_name='sts.ai.state.v1.PotionState.name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='slot_index', full_name='sts.ai.state.v1.PotionState.slot_index', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_usable', full_name='sts.ai.state.v1.PotionState.is_usable', index=3,
+      number=4, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='can_target', full_name='sts.ai.state.v1.PotionState.can_target', index=4,
+      number=5, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=861,
+  serialized_end=959,
+)
+
+
+_DUNGEONMAPSTATE = _descriptor.Descriptor(
+  name='DungeonMapState',
+  full_name='sts.ai.state.v1.DungeonMapState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='floor', full_name='sts.ai.state.v1.DungeonMapState.floor', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='nodes', full_name='sts.ai.state.v1.DungeonMapState.nodes', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='boss_name', full_name='sts.ai.state.v1.DungeonMapState.boss_name', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=961,
+  serialized_end=1058,
+)
+
+
+_MAPNODESTATE = _descriptor.Descriptor(
+  name='MapNodeState',
+  full_name='sts.ai.state.v1.MapNodeState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='x', full_name='sts.ai.state.v1.MapNodeState.x', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='y', full_name='sts.ai.state.v1.MapNodeState.y', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='room_type', full_name='sts.ai.state.v1.MapNodeState.room_type', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_available', full_name='sts.ai.state.v1.MapNodeState.is_available', index=3,
+      number=4, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='children', full_name='sts.ai.state.v1.MapNodeState.children', index=4,
+      number=5, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1060,
+  serialized_end=1186,
+)
+
+
+_MAPEDGESTATE = _descriptor.Descriptor(
+  name='MapEdgeState',
+  full_name='sts.ai.state.v1.MapEdgeState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='dst_x', full_name='sts.ai.state.v1.MapEdgeState.dst_x', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='dst_y', full_name='sts.ai.state.v1.MapEdgeState.dst_y', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1188,
+  serialized_end=1232,
+)
+
+
+_SHOPSTATE = _descriptor.Descriptor(
+  name='ShopState',
+  full_name='sts.ai.state.v1.ShopState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='cards', full_name='sts.ai.state.v1.ShopState.cards', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='relics', full_name='sts.ai.state.v1.ShopState.relics', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='potions', full_name='sts.ai.state.v1.ShopState.potions', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='purge_cost', full_name='sts.ai.state.v1.ShopState.purge_cost', index=3,
+      number=4, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='current_gold', full_name='sts.ai.state.v1.ShopState.current_gold', index=4,
+      number=5, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1235,
+  serialized_end=1423,
+)
+
+
+_RESTSITESTATE = _descriptor.Descriptor(
+  name='RestSiteState',
+  full_name='sts.ai.state.v1.RestSiteState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='has_rest', full_name='sts.ai.state.v1.RestSiteState.has_rest', index=0,
+      number=1, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='has_smith', full_name='sts.ai.state.v1.RestSiteState.has_smith', index=1,
+      number=2, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='has_lift', full_name='sts.ai.state.v1.RestSiteState.has_lift', index=2,
+      number=3, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='has_toke', full_name='sts.ai.state.v1.RestSiteState.has_toke', index=3,
+      number=4, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='has_dig', full_name='sts.ai.state.v1.RestSiteState.has_dig', index=4,
+      number=5, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='heal_amount', full_name='sts.ai.state.v1.RestSiteState.heal_amount', index=5,
+      number=6, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1425,
+  serialized_end=1551,
+)
+
+
+_EVENTSTATE = _descriptor.Descriptor(
+  name='EventState',
+  full_name='sts.ai.state.v1.EventState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='event_id', full_name='sts.ai.state.v1.EventState.event_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='options', full_name='sts.ai.state.v1.EventState.options', index=1,
+      number=2, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1553,
+  serialized_end=1600,
+)
+
+
+_REWARDSTATE = _descriptor.Descriptor(
+  name='RewardState',
+  full_name='sts.ai.state.v1.RewardState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='items', full_name='sts.ai.state.v1.RewardState.items', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1602,
+  serialized_end=1664,
+)
+
+
+_REWARDITEMSTATE = _descriptor.Descriptor(
+  name='RewardItemState',
+  full_name='sts.ai.state.v1.RewardItemState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='type', full_name='sts.ai.state.v1.RewardItemState.type', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='amount', full_name='sts.ai.state.v1.RewardItemState.amount', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='id', full_name='sts.ai.state.v1.RewardItemState.id', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='cards', full_name='sts.ai.state.v1.RewardItemState.cards', index=3,
+      number=4, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_claimed', full_name='sts.ai.state.v1.RewardItemState.is_claimed', index=4,
+      number=5, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1666,
+  serialized_end=1788,
 )
 
 
@@ -181,6 +940,62 @@ _GAMESTATE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='hand', full_name='sts.ai.state.v1.GameState.hand', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='potions', full_name='sts.ai.state.v1.GameState.potions', index=3,
+      number=4, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='map', full_name='sts.ai.state.v1.GameState.map', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='shop', full_name='sts.ai.state.v1.GameState.shop', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='rest_site', full_name='sts.ai.state.v1.GameState.rest_site', index=6,
+      number=7, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='event', full_name='sts.ai.state.v1.GameState.event', index=7,
+      number=8, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='reward', full_name='sts.ai.state.v1.GameState.reward', index=8,
+      number=9, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='screen_type', full_name='sts.ai.state.v1.GameState.screen_type', index=9,
+      number=10, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -193,8 +1008,8 @@ _GAMESTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=240,
-  serialized_end=346,
+  serialized_start=1791,
+  serialized_end=2237,
 )
 
 
@@ -239,17 +1054,69 @@ _GAMEACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=348,
-  serialized_end=423,
+  serialized_start=2239,
+  serialized_end=2314,
 )
 
+_PLAYERSTATE.fields_by_name['powers'].message_type = _POWERSTATE
+_PLAYERSTATE.fields_by_name['relics'].message_type = _RELICSTATE
+_PLAYERSTATE.fields_by_name['orbs'].message_type = _ORBSTATE
+_MONSTERSTATE.fields_by_name['powers'].message_type = _POWERSTATE
+_DUNGEONMAPSTATE.fields_by_name['nodes'].message_type = _MAPNODESTATE
+_MAPNODESTATE.fields_by_name['children'].message_type = _MAPEDGESTATE
+_SHOPSTATE.fields_by_name['cards'].message_type = _CARDSTATE
+_SHOPSTATE.fields_by_name['relics'].message_type = _RELICSTATE
+_SHOPSTATE.fields_by_name['potions'].message_type = _POTIONSTATE
+_REWARDSTATE.fields_by_name['items'].message_type = _REWARDITEMSTATE
+_REWARDITEMSTATE.fields_by_name['cards'].message_type = _CARDSTATE
 _GAMESTATE.fields_by_name['player'].message_type = _PLAYERSTATE
 _GAMESTATE.fields_by_name['monsters'].message_type = _MONSTERSTATE
+_GAMESTATE.fields_by_name['hand'].message_type = _CARDSTATE
+_GAMESTATE.fields_by_name['potions'].message_type = _POTIONSTATE
+_GAMESTATE.fields_by_name['map'].message_type = _DUNGEONMAPSTATE
+_GAMESTATE.fields_by_name['shop'].message_type = _SHOPSTATE
+_GAMESTATE.fields_by_name['rest_site'].message_type = _RESTSITESTATE
+_GAMESTATE.fields_by_name['event'].message_type = _EVENTSTATE
+_GAMESTATE.fields_by_name['reward'].message_type = _REWARDSTATE
+DESCRIPTOR.message_types_by_name['PowerState'] = _POWERSTATE
+DESCRIPTOR.message_types_by_name['RelicState'] = _RELICSTATE
+DESCRIPTOR.message_types_by_name['OrbState'] = _ORBSTATE
 DESCRIPTOR.message_types_by_name['PlayerState'] = _PLAYERSTATE
 DESCRIPTOR.message_types_by_name['MonsterState'] = _MONSTERSTATE
+DESCRIPTOR.message_types_by_name['CardState'] = _CARDSTATE
+DESCRIPTOR.message_types_by_name['PotionState'] = _POTIONSTATE
+DESCRIPTOR.message_types_by_name['DungeonMapState'] = _DUNGEONMAPSTATE
+DESCRIPTOR.message_types_by_name['MapNodeState'] = _MAPNODESTATE
+DESCRIPTOR.message_types_by_name['MapEdgeState'] = _MAPEDGESTATE
+DESCRIPTOR.message_types_by_name['ShopState'] = _SHOPSTATE
+DESCRIPTOR.message_types_by_name['RestSiteState'] = _RESTSITESTATE
+DESCRIPTOR.message_types_by_name['EventState'] = _EVENTSTATE
+DESCRIPTOR.message_types_by_name['RewardState'] = _REWARDSTATE
+DESCRIPTOR.message_types_by_name['RewardItemState'] = _REWARDITEMSTATE
 DESCRIPTOR.message_types_by_name['GameState'] = _GAMESTATE
 DESCRIPTOR.message_types_by_name['GameAction'] = _GAMEACTION
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+PowerState = _reflection.GeneratedProtocolMessageType('PowerState', (_message.Message,), {
+  'DESCRIPTOR' : _POWERSTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.PowerState)
+  })
+_sym_db.RegisterMessage(PowerState)
+
+RelicState = _reflection.GeneratedProtocolMessageType('RelicState', (_message.Message,), {
+  'DESCRIPTOR' : _RELICSTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.RelicState)
+  })
+_sym_db.RegisterMessage(RelicState)
+
+OrbState = _reflection.GeneratedProtocolMessageType('OrbState', (_message.Message,), {
+  'DESCRIPTOR' : _ORBSTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.OrbState)
+  })
+_sym_db.RegisterMessage(OrbState)
 
 PlayerState = _reflection.GeneratedProtocolMessageType('PlayerState', (_message.Message,), {
   'DESCRIPTOR' : _PLAYERSTATE,
@@ -264,6 +1131,76 @@ MonsterState = _reflection.GeneratedProtocolMessageType('MonsterState', (_messag
   # @@protoc_insertion_point(class_scope:sts.ai.state.v1.MonsterState)
   })
 _sym_db.RegisterMessage(MonsterState)
+
+CardState = _reflection.GeneratedProtocolMessageType('CardState', (_message.Message,), {
+  'DESCRIPTOR' : _CARDSTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.CardState)
+  })
+_sym_db.RegisterMessage(CardState)
+
+PotionState = _reflection.GeneratedProtocolMessageType('PotionState', (_message.Message,), {
+  'DESCRIPTOR' : _POTIONSTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.PotionState)
+  })
+_sym_db.RegisterMessage(PotionState)
+
+DungeonMapState = _reflection.GeneratedProtocolMessageType('DungeonMapState', (_message.Message,), {
+  'DESCRIPTOR' : _DUNGEONMAPSTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.DungeonMapState)
+  })
+_sym_db.RegisterMessage(DungeonMapState)
+
+MapNodeState = _reflection.GeneratedProtocolMessageType('MapNodeState', (_message.Message,), {
+  'DESCRIPTOR' : _MAPNODESTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.MapNodeState)
+  })
+_sym_db.RegisterMessage(MapNodeState)
+
+MapEdgeState = _reflection.GeneratedProtocolMessageType('MapEdgeState', (_message.Message,), {
+  'DESCRIPTOR' : _MAPEDGESTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.MapEdgeState)
+  })
+_sym_db.RegisterMessage(MapEdgeState)
+
+ShopState = _reflection.GeneratedProtocolMessageType('ShopState', (_message.Message,), {
+  'DESCRIPTOR' : _SHOPSTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.ShopState)
+  })
+_sym_db.RegisterMessage(ShopState)
+
+RestSiteState = _reflection.GeneratedProtocolMessageType('RestSiteState', (_message.Message,), {
+  'DESCRIPTOR' : _RESTSITESTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.RestSiteState)
+  })
+_sym_db.RegisterMessage(RestSiteState)
+
+EventState = _reflection.GeneratedProtocolMessageType('EventState', (_message.Message,), {
+  'DESCRIPTOR' : _EVENTSTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.EventState)
+  })
+_sym_db.RegisterMessage(EventState)
+
+RewardState = _reflection.GeneratedProtocolMessageType('RewardState', (_message.Message,), {
+  'DESCRIPTOR' : _REWARDSTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.RewardState)
+  })
+_sym_db.RegisterMessage(RewardState)
+
+RewardItemState = _reflection.GeneratedProtocolMessageType('RewardItemState', (_message.Message,), {
+  'DESCRIPTOR' : _REWARDITEMSTATE,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.RewardItemState)
+  })
+_sym_db.RegisterMessage(RewardItemState)
 
 GameState = _reflection.GeneratedProtocolMessageType('GameState', (_message.Message,), {
   'DESCRIPTOR' : _GAMESTATE,

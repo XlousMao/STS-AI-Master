@@ -92,13 +92,39 @@ cd C:\Projects\GitHub\STS-AI-Master
   - 接入 `protobuf-maven-plugin` 与独立的 `protobuf/sts_state.proto`，实现结构化的玩家与怪物状态采样。
   - 使用 `maven-shade-plugin` 将 `protobuf-java` 打入 Mod 并通过 Relocation 将 `com.google.protobuf` 重定位到 `sts.ai.bridge.repackaged.protobuf`，解决运行时依赖缺失与潜在类加载冲突。
   - 在战斗中每 3 秒输出一条带有 `[STS-AI-PROTO]` 前缀的 `GameState` 文本日志，验证数据实时性与完整性（详见 `docs/dev_logs/STAGE_1_SUMMARY.md`）。
+  - 在 `protobuf/sts_state.proto` 中扩展 `GameOutcome`、`GameState.master_deck` 等字段，并为卡牌 / 遗物 / 药水预留价格字段，满足后续训练对长期构筑和购买决策的需求（详见 `docs/dev_logs/ENVIRONMENT_AUDIT_REPORT.md`）。
+  - Java 端 Socket 服务支持通过 `-Dsts.ai.port=XXXX` 动态配置端口，解除 9999 硬编码限制，可在同一物理机上并行启动多个无头实例。
+  - 新增 `RESET` 动作与对应处理逻辑（基于 `CardCrawlGame.startOver`），Episode 结束后可自动重开，无需人工干预。
+  - 引入 `tools/launch_headless.sh` 一键无头启动脚本，形成 “启动游戏 → 建立 Socket → 周期采样 → 接收动作 → 自动重开” 的完整训练闭环。
 
 - Stage 1：数据结构化与感知打通 —— **已完成**
   - 将原始字符串日志升级为 Protobuf 协议对象 `GameState` 的构造与打印。
   - 数据覆盖范围：
     - Player：HP、Max HP、Gold、Energy、Block、Floor。
     - Monsters：ID、Name、HP、Max HP、Intent、Block。
-  - 通过 `[STS-AI-PROTO]` 日志为 Python / Qt 侧提供稳定的外部观测入口，为后续 Gym 环境与训练闭环打基础。
+  - 在当前版本中进一步扩展观测空间，包含 Master Deck、游戏结局摘要（胜利 / 死亡、近似得分、进阶等级）以及商店与篝火的关键占位信息，满足强化学习对长程收益与经济策略的建模需求。
+  - 通过 `[STS-AI-PROTO]` 与 `[STS-AI-ACTION]` 日志为 Python / Qt 侧提供稳定的外部观测与动作回放入口，为后续 Gym 环境与训练闭环打基础。
+
+---
+
+## 🧪 Phase 0 收官：可用训练环境说明
+
+- 实际可落地的使用场景：
+  - 使用 `tools/launch_headless.sh` 启动无头 Slay the Spire 实例，指定训练端口并自动加载 `basemod, stslib, sts-ai-bridge`。
+  - 在 Python 侧通过 Socket（参考 `python_ai/client_demo.py` 或后续 Gym 环境）接入，实时接收包含 Master Deck / GameOutcome / Shop 概要等字段的 `GameState`，并下发动作指令。
+  - 通过 `RESET` 动作实现 Episode 结束后的自动重开，支撑长时间连续采样与多进程并行训练。
+
+- 启动与并行示例：
+  - 单实例无头启动：
+    - `./tools/launch_headless.sh 10001`
+  - 多实例并行（示意）：
+    - `./tools/launch_headless.sh 10001`
+    - `./tools/launch_headless.sh 10002`
+  - 对应地，在 Python 环境中为每个进程配置匹配的 `host:port`，即可形成 N 个独立的环境副本。
+
+- 使用须知：
+  - 当前版本的 `GameOutcome.score` 为基于楼层与进阶等级的近似得分，用于训练阶段的相对奖励信号，并非严格还原游戏 UI 上的最终分数。
+  - 商店与药水价格字段已在协议层预留，部分实现依赖 AccessTransformer，短期内可能以占位或简化逻辑呈现，但不影响 Gym 封装与基础训练流程。
 
 ---
 

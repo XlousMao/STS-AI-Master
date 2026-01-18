@@ -1,6 +1,7 @@
 import os
 import socket
 import struct
+import time
 
 os.environ.setdefault("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "python")
 
@@ -24,18 +25,33 @@ def recv_exact(sock, size):
     return data
 
 
+def send_action(sock, action_type, card_index=0, target_index=0):
+    action = sts_state_pb2.GameAction(
+        action_type=action_type,
+        card_index=card_index,
+        target_index=target_index,
+    )
+    payload = action.SerializeToString()
+    sock.sendall(struct.pack(">I", len(payload)) + payload)
+    print(
+        f"[PY-CLIENT] Sent GameAction: {action_type}, "
+        f"card_index={card_index}, target_index={target_index}"
+    )
+
+
+def is_strike(card):
+    if card.id == "Strike_R":
+        return True
+    name = card.name or ""
+    if "打击" in name or "Strike" in name:
+        return True
+    return False
+
+
 def main():
     try:
         with socket.create_connection((HOST, PORT)) as sock:
             print(f"[PY-CLIENT] Connected to {HOST}:{PORT}")
-            action = sts_state_pb2.GameAction(
-                action_type="END_TURN",
-                card_index=0,
-                target_index=0,
-            )
-            action_payload = action.SerializeToString()
-            sock.sendall(struct.pack(">I", len(action_payload)) + action_payload)
-            print("[PY-CLIENT] Sent GameAction: END_TURN")
             while True:
                 header = recv_exact(sock, HEADER_SIZE)
                 (length,) = struct.unpack(">I", header)
@@ -44,13 +60,34 @@ def main():
                 body = recv_exact(sock, length)
                 msg = sts_state_pb2.GameState()
                 msg.ParseFromString(body)
-                json_str = MessageToJson(
-                    msg,
-                    always_print_fields_with_no_presence=True,
-                    preserving_proto_field_name=True,
-                )
-                print("[PY-CLIENT] Received GameState:")
-                print(json_str)
+                player = msg.player
+                energy = player.energy
+                monsters = list(msg.monsters)
+                alive_monsters = [i for i, m in enumerate(monsters) if m.hp > 0]
+                if not alive_monsters:
+                    continue
+                if energy <= 0:
+                    continue
+                hand = list(msg.hand)
+                strike_indices = [i for i, c in enumerate(hand) if is_strike(c) and c.cost <= energy]
+                if not strike_indices:
+                    send_action(sock, "END_TURN")
+                    time.sleep(1.0)
+                    continue
+                for idx in strike_indices:
+                    card = hand[idx]
+                    cost = max(card.cost, 0)
+                    if cost > energy:
+                        continue
+                    target_idx = alive_monsters[0] if len(alive_monsters) == 1 else alive_monsters[len(alive_monsters) - 1]
+                    send_action(sock, "PLAY_CARD", card_index=idx, target_index=target_idx)
+                    energy -= cost
+                    time.sleep(0.5)
+                    if energy <= 0:
+                        break
+                if energy <= 0:
+                    send_action(sock, "END_TURN")
+                    time.sleep(1.0)
     except ConnectionRefusedError as e:
         print(f"[PY-CLIENT] Failed to connect to {HOST}:{PORT}: {e}")
     except OSError as e:
