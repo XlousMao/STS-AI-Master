@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\017sts.ai.state.v1P\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0fsts_state.proto\x12\x0fsts.ai.state.v1\"e\n\x0bPlayerState\x12\n\n\x02hp\x18\x01 \x01(\x05\x12\x0e\n\x06max_hp\x18\x02 \x01(\x05\x12\x0c\n\x04gold\x18\x03 \x01(\x05\x12\x0e\n\x06\x65nergy\x18\x04 \x01(\x05\x12\r\n\x05\x62lock\x18\x05 \x01(\x05\x12\r\n\x05\x66loor\x18\x06 \x01(\x05\"c\n\x0cMonsterState\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\n\n\x02hp\x18\x03 \x01(\x05\x12\x0e\n\x06max_hp\x18\x04 \x01(\x05\x12\x0e\n\x06intent\x18\x05 \x01(\t\x12\r\n\x05\x62lock\x18\x06 \x01(\x05\"j\n\tGameState\x12,\n\x06player\x18\x01 \x01(\x0b\x32\x1c.sts.ai.state.v1.PlayerState\x12/\n\x08monsters\x18\x02 \x03(\x0b\x32\x1d.sts.ai.state.v1.MonsterStateB\x13\n\x0fsts.ai.state.v1P\x01\x62\x06proto3'
+  serialized_pb=b'\n\x0fsts_state.proto\x12\x0fsts.ai.state.v1\"e\n\x0bPlayerState\x12\n\n\x02hp\x18\x01 \x01(\x05\x12\x0e\n\x06max_hp\x18\x02 \x01(\x05\x12\x0c\n\x04gold\x18\x03 \x01(\x05\x12\x0e\n\x06\x65nergy\x18\x04 \x01(\x05\x12\r\n\x05\x62lock\x18\x05 \x01(\x05\x12\r\n\x05\x66loor\x18\x06 \x01(\x05\"c\n\x0cMonsterState\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\n\n\x02hp\x18\x03 \x01(\x05\x12\x0e\n\x06max_hp\x18\x04 \x01(\x05\x12\x0e\n\x06intent\x18\x05 \x01(\t\x12\r\n\x05\x62lock\x18\x06 \x01(\x05\"j\n\tGameState\x12,\n\x06player\x18\x01 \x01(\x0b\x32\x1c.sts.ai.state.v1.PlayerState\x12/\n\x08monsters\x18\x02 \x03(\x0b\x32\x1d.sts.ai.state.v1.MonsterState\"K\n\nGameAction\x12\x13\n\x0b\x61\x63tion_type\x18\x01 \x01(\t\x12\x12\n\ncard_index\x18\x02 \x01(\x05\x12\x14\n\x0ctarget_index\x18\x03 \x01(\x05\x42\x13\n\x0fsts.ai.state.v1P\x01\x62\x06proto3'
 )
 
 
@@ -197,11 +197,58 @@ _GAMESTATE = _descriptor.Descriptor(
   serialized_end=346,
 )
 
+
+_GAMEACTION = _descriptor.Descriptor(
+  name='GameAction',
+  full_name='sts.ai.state.v1.GameAction',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='action_type', full_name='sts.ai.state.v1.GameAction.action_type', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='card_index', full_name='sts.ai.state.v1.GameAction.card_index', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='target_index', full_name='sts.ai.state.v1.GameAction.target_index', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=348,
+  serialized_end=423,
+)
+
 _GAMESTATE.fields_by_name['player'].message_type = _PLAYERSTATE
 _GAMESTATE.fields_by_name['monsters'].message_type = _MONSTERSTATE
 DESCRIPTOR.message_types_by_name['PlayerState'] = _PLAYERSTATE
 DESCRIPTOR.message_types_by_name['MonsterState'] = _MONSTERSTATE
 DESCRIPTOR.message_types_by_name['GameState'] = _GAMESTATE
+DESCRIPTOR.message_types_by_name['GameAction'] = _GAMEACTION
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 PlayerState = _reflection.GeneratedProtocolMessageType('PlayerState', (_message.Message,), {
@@ -224,6 +271,13 @@ GameState = _reflection.GeneratedProtocolMessageType('GameState', (_message.Mess
   # @@protoc_insertion_point(class_scope:sts.ai.state.v1.GameState)
   })
 _sym_db.RegisterMessage(GameState)
+
+GameAction = _reflection.GeneratedProtocolMessageType('GameAction', (_message.Message,), {
+  'DESCRIPTOR' : _GAMEACTION,
+  '__module__' : 'sts_state_pb2'
+  # @@protoc_insertion_point(class_scope:sts.ai.state.v1.GameAction)
+  })
+_sym_db.RegisterMessage(GameAction)
 
 
 DESCRIPTOR._options = None

@@ -6,10 +6,12 @@ import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import sts.ai.state.v1.GameAction;
 import sts.ai.state.v1.GameState;
 import sts.ai.state.v1.MonsterState;
 import sts.ai.state.v1.PlayerState;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.BindException;
@@ -35,6 +37,7 @@ public class StsAIBridge {
     private static volatile boolean socketServerStarted = false;
     private static ServerSocket serverSocket;
     private static volatile Socket clientSocket;
+    private static volatile DataInputStream clientIn;
     private static volatile DataOutputStream clientOut;
 
     /**
@@ -77,7 +80,12 @@ public class StsAIBridge {
                     synchronized (StsAIBridge.class) {
                         closeClientQuietly();
                         clientSocket = socket;
+                        clientIn = new DataInputStream(socket.getInputStream());
                         clientOut = new DataOutputStream(socket.getOutputStream());
+                        Thread reader = new Thread(new ClientActionReader(socket, clientIn));
+                        reader.setDaemon(true);
+                        reader.setName("STS-AI-ActionReceiver");
+                        reader.start();
                     }
                 }
             } catch (BindException e) {
@@ -91,6 +99,12 @@ public class StsAIBridge {
     }
 
     private static void closeClientQuietly() {
+        if (clientIn != null) {
+            try {
+                clientIn.close();
+            } catch (IOException ignored) {
+            }
+        }
         if (clientOut != null) {
             try {
                 clientOut.close();
@@ -103,6 +117,7 @@ public class StsAIBridge {
             } catch (IOException ignored) {
             }
         }
+        clientIn = null;
         clientOut = null;
         clientSocket = null;
     }
@@ -115,6 +130,53 @@ public class StsAIBridge {
             }
         }
         serverSocket = null;
+    }
+
+    private static class ClientActionReader implements Runnable {
+        private final Socket socket;
+        private final DataInputStream in;
+
+        private ClientActionReader(Socket socket, DataInputStream in) {
+            this.socket = socket;
+            this.in = in;
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (!socket.isClosed()) {
+                    int length;
+                    try {
+                        length = in.readInt();
+                    } catch (IOException e) {
+                        System.out.println("[STS-AI-ACTION] Failed to read action length: " + e.getMessage());
+                        break;
+                    }
+                    if (length <= 0) {
+                        continue;
+                    }
+                    byte[] payload = new byte[length];
+                    try {
+                        in.readFully(payload);
+                    } catch (IOException e) {
+                        System.out.println("[STS-AI-ACTION] Failed to read action payload: " + e.getMessage());
+                        break;
+                    }
+                    try {
+                        GameAction action = GameAction.parseFrom(payload);
+                        System.out.println("[STS-AI-ACTION] Received GameAction: " + action.toString());
+                    } catch (Exception e) {
+                        System.out.println("[STS-AI-ACTION] Failed to parse GameAction: " + e.getMessage());
+                    }
+                }
+            } finally {
+                synchronized (StsAIBridge.class) {
+                    if (socket == clientSocket) {
+                        closeClientQuietly();
+                    }
+                }
+            }
+        }
     }
 
     /**

@@ -28,6 +28,14 @@ def main():
     try:
         with socket.create_connection((HOST, PORT)) as sock:
             print(f"[PY-CLIENT] Connected to {HOST}:{PORT}")
+            action = sts_state_pb2.GameAction(
+                action_type="END_TURN",
+                card_index=0,
+                target_index=0,
+            )
+            action_payload = action.SerializeToString()
+            sock.sendall(struct.pack(">I", len(action_payload)) + action_payload)
+            print("[PY-CLIENT] Sent GameAction: END_TURN")
             while True:
                 header = recv_exact(sock, HEADER_SIZE)
                 (length,) = struct.unpack(">I", header)

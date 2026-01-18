@@ -28,3 +28,8 @@ message GameState {
   repeated MonsterState monsters = 2;
 }
 
+message GameAction {
+  string action_type = 1;
+  int32 card_index = 2;
+  int32 target_index = 3;
+}
