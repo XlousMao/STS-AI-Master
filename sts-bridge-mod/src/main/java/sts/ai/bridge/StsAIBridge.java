@@ -12,6 +12,7 @@ import sts.ai.state.v1.PlayerState;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -79,6 +80,8 @@ public class StsAIBridge {
                         clientOut = new DataOutputStream(socket.getOutputStream());
                     }
                 }
+            } catch (BindException e) {
+                System.out.println("[STS-AI-SOCKET] Port 9999 bind failed (possibly in use): " + e.getMessage());
             } catch (IOException e) {
                 System.out.println("[STS-AI-SOCKET] Server error: " + e.getMessage());
             } finally {

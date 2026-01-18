@@ -116,6 +116,27 @@ Phase 0 聚焦于协议定义与 Java Mod 工程，目前已完成基础协议�
 
 ---
 
+## 🧰 快速排障（Troubleshooting）
+
+- Protobuf 相关错误：
+  - 现象：运行 Python 客户端时出现 `TypeError: Descriptors cannot be created directly`。
+  - 快速检查：
+    - 使用 `pip show protobuf` 确认当前版本是否在 `<= 3.20.x` 区间。
+    - 确认 `sts_state_pb2.py` 是由兼容版本的 `protoc` 重新生成（包含 `create_key=_descriptor._internal_create_key` 等字段）。
+    - 在 Python 客户端中，优先使用 `always_print_fields_with_no_presence` 等兼容参数，而非较新文档中的替代参数名。
+    - 必要时设置环境变量：`PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python` 以提升兼容性。
+
+- 端口占用与 Socket 连接失败：
+  - 现象：
+    - Java 端日志中出现 `Address already in use: JVM_Bind` 或无法看到 `Listening on port 9999`。
+    - Python 客户端报错 `ConnectionRefusedError`，无法连接到 `127.0.0.1:9999`。
+  - 快速检查：
+    - 使用 `netstat -ano | findstr 9999` 确认端口占用情况，如有残留进程，使用 `taskkill /PID <pid> /F` 清理。
+    - 确认 STS-AI Bridge Mod 已成功加载，并在控制台看到 `[STS-AI-SOCKET] Listening on port 9999` 日志。
+    - 检查防火墙或杀毒软件是否拦截本地回环连接。
+
+---
+
 ## 📄 许可证
 
 本项目采用 MIT License，详情见 `LICENSE` 文件。
