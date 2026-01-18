@@ -2,7 +2,7 @@
 
 [![Technical Stack](https://img.shields.io/badge/Stack-Java%20%7C%20Python%20%7C%20C%2B%2B-blue)](https://github.com/YourUsername/STS-AI-Master)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Phase](https://img.shields.io/badge/Phase-0%20(Protocol%20Design)-orange)](https://github.com/YourUsername/STS-AI-Master)
+[![Phase](https://img.shields.io/badge/Phase-0%20Completed%20(Protocol%20%2B%20Bridge)-orange)](https://github.com/YourUsername/STS-AI-Master)
 
 ## 🌟 项目愿景
 本项目旨在打造一款高效、解耦、可扩展的《杀戮尖塔》AI 决策系统。通过无头渲染（Headless）技术绕开游戏引擎动画开销，利用云边端协同架构，实现从大规模并行训练到本地低延迟推理的全链路闭环。
@@ -84,17 +84,35 @@ cd C:\Projects\GitHub\STS-AI-Master
 
 ---
 
+## ✅ 当前进度
+
+- Phase 0：协议定义与 Java Mod Bridge —— **已完成**
+  - 基于 `docs/protocols/sts_v1.proto` 建立统一跨语言协议（包含 `GameState`、`ActionCommand`、`ProtocolMessage` 等核心结构）。
+  - 完成 `sts-bridge-mod` Mod 工程搭建，通过 `@SpireInitializer` + `@SpirePatch(AbstractDungeon.update)` 拦截游戏状态。
+  - 接入 `protobuf-maven-plugin` 与独立的 `protobuf/sts_state.proto`，实现结构化的玩家与怪物状态采样。
+  - 使用 `maven-shade-plugin` 将 `protobuf-java` 打入 Mod 并通过 Relocation 将 `com.google.protobuf` 重定位到 `sts.ai.bridge.repackaged.protobuf`，解决运行时依赖缺失与潜在类加载冲突。
+  - 在战斗中每 3 秒输出一条带有 `[STS-AI-PROTO]` 前缀的 `GameState` 文本日志，验证数据实时性与完整性（详见 `docs/dev_logs/STAGE_1_SUMMARY.md`）。
+
+- Stage 1：数据结构化与感知打通 —— **已完成**
+  - 将原始字符串日志升级为 Protobuf 协议对象 `GameState` 的构造与打印。
+  - 数据覆盖范围：
+    - Player：HP、Max HP、Gold、Energy、Block、Floor。
+    - Monsters：ID、Name、HP、Max HP、Intent、Block。
+  - 通过 `[STS-AI-PROTO]` 日志为 Python / Qt 侧提供稳定的外部观测入口，为后续 Gym 环境与训练闭环打基础。
+
+---
+
 ## 🗺️ Roadmap
 
-| Phase | 名称                             | 说明                                                                 | 状态     |
-|-------|----------------------------------|----------------------------------------------------------------------|----------|
-| 0     | 协议定义与 Java Mod Bridge      | 设计跨语言 Protobuf 协议，搭建 Mod 拦截层与状态采样通路            | 进行中   |
-| 1     | Python 训练引擎                  | 构建 Gymnasium 环境封装与 PPO 训练流水线，打通多进程采样到训练闭环 | 规划中   |
-| 2     | Qt 决策客户端                    | 基于 ONNX Runtime 的本地推理客户端与可视化面板                      | 规划中   |
-| 3     | 大规模训练与评估                 | 多环境并行训练、策略评估与对比实验工具链                            | 规划中   |
-| 4     | 云端策略中心与数据同步           | 云端数据存储、策略管理与下发，支撑多终端共享策略                    | 规划中   |
+| Phase | 名称                             | 说明                                                                                         | 状态     |
+|-------|----------------------------------|----------------------------------------------------------------------------------------------|----------|
+| 0     | 协议定义与 Java Mod Bridge      | 设计跨语言 Protobuf 协议，搭建 Mod 拦截层与结构化状态采样通路（含 Shade + Relocation）     | 已完成   |
+| 1     | Python 训练引擎                  | 构建 Gymnasium 环境封装与 PPO 训练流水线，打通多进程采样到训练闭环                         | 规划中   |
+| 2     | Qt 决策客户端                    | 基于 ONNX Runtime 的本地推理客户端与可视化面板                                              | 规划中   |
+| 3     | 大规模训练与评估                 | 多环境并行训练、策略评估与对比实验工具链                                                    | 规划中   |
+| 4     | 云端策略中心与数据同步           | 云端数据存储、策略管理与下发，支撑多终端共享策略                                            | 规划中   |
 
-Phase 0 聚焦于协议定义与 Java Mod 工程，详细目录结构参考 `docs/architecture.md` 与 `sts-bridge-mod/` 目录。
+Phase 0 聚焦于协议定义与 Java Mod 工程，目前已完成基础协议、Bridge Mod 和结构化采样链路；后续阶段将依次推进 Python 训练引擎、Qt 客户端与云端策略中心。
 
 ---
 
