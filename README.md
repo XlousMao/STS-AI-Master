@@ -124,7 +124,29 @@ cd C:\Projects\GitHub\STS-AI-Master
 
 - 使用须知：
   - 当前版本的 `GameOutcome.score` 为基于楼层与进阶等级的近似得分，用于训练阶段的相对奖励信号，并非严格还原游戏 UI 上的最终分数。
-  - 商店与药水价格字段已在协议层预留，部分实现依赖 AccessTransformer，短期内可能以占位或简化逻辑呈现，但不影响 Gym 封装与基础训练流程。
+  - 商店中卡牌 / 遗物 / 药水的价格字段已经通过 Java 反射从 `ShopScreen` 内部结构中读取并写入 Protobuf，不再依赖占位实现。
+
+---
+
+## 🔧 第一阶段：环境就绪（Environment Ready）
+
+在 Phase 0 的基础上，第一阶段完成了针对训练环境鲁棒性的系统加固，目前支持的核心特性包括：
+
+- 反射驱动的数据采集：
+  - 通过 Java Reflection 访问 `ShopScreen` 的私有字段，完整采集商店中的卡牌、遗物、药水列表及其价格，并映射到 `ShopState` 中的 `cards` / `relics` / `potions` 结构。
+  - 通过反射读取 `CampfireUI` 的 `buttons` 列表，动态识别休息点可用选项（Rest / Smith / Dig / Lift / Toke 等），并映射到 `RestSiteState` 的布尔标记字段。
+
+- 地图自动导航（Map Node 跳转）：
+  - 实现 `CHOOSE_MAP_NODE` 动作：根据 `(x, y)` 坐标在 `AbstractDungeon.map` 中查找目标节点，设置 `AbstractDungeon.nextRoom`，更新 `pathX` / `pathY` 并调用 `nextRoomTransitionStart()`。
+  - 在无头模式下无需鼠标事件即可完成稳定的房间跳转，适配自动化训练与批量环境。
+
+- 自动重开（Reset）与并行适配：
+  - 通过 `RESET` 动作设置 `CardCrawlGame.startOver = true`，在 Episode 结束后由游戏主循环驱动新一局的创建，实现真正的“无人值守长时间训练”。
+  - Socket 端口由 JVM 参数 `-Dsts.ai.port=XXXX` 动态配置，可在同一物理机上启动多实例无头环境，为后续多进程 Gymnasium 封装提供基础。
+
+- Protobuf 采样优化：
+  - 在手牌序列化时调用 `calculateCardDamage(null)`，同步导出当前上下文下的伤害 / 格挡等关键数值，为策略网络提供更贴近实时战局的观测。
+  - `CardState.is_playable` 字段综合考虑能量、卡牌自身限制与 `cardPlayable` 结果，可直接作为动作掩码（Action Mask）的基础。
 
 ---
 

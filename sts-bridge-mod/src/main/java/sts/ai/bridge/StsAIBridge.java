@@ -18,10 +18,8 @@ import org.apache.logging.log4j.Logger;
 import com.megacrit.cardcrawl.map.MapEdge;
 import com.megacrit.cardcrawl.map.MapRoomNode;
 import com.megacrit.cardcrawl.rewards.RewardItem;
+import java.lang.reflect.Field;
 import com.megacrit.cardcrawl.shop.ShopScreen;
-import com.megacrit.cardcrawl.shop.StorePotion;
-import com.megacrit.cardcrawl.shop.StoreRelic;
-import com.megacrit.cardcrawl.ui.campfire.AbstractCampfireOption;
 import com.megacrit.cardcrawl.potions.AbstractPotion;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.screens.DeathScreen;
@@ -209,6 +207,27 @@ public class StsAIBridge {
         }
     }
 
+    // Reflection Helper
+    private static <T> T getPrivateField(Object instance, String fieldName, Class<T> type) {
+        if (instance == null) return null;
+        try {
+            Field field = instance.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return type.cast(field.get(instance));
+        } catch (NoSuchFieldException e) {
+            try {
+                Field field = instance.getClass().getSuperclass().getDeclaredField(fieldName);
+                field.setAccessible(true);
+                return type.cast(field.get(instance));
+            } catch (Exception ex) {
+                // Silent fail or log if needed
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     /**
      * 对 AbstractDungeon.update 做 Patch。
      * 利用 Postfix 在每帧逻辑更新后插入采样点：
@@ -250,13 +269,11 @@ public class StsAIBridge {
             }
             GameAction action;
             while ((action = actionQueue.poll()) != null) {
-                System.out.println("[STS-AI-ACTION] 准备执行队列中的动作: " + action.toString());
                 if ("END_TURN".equals(action.getActionType())) {
                     AbstractRoom room = AbstractDungeon.getCurrRoom();
                     if (room != null
                             && room.phase == AbstractRoom.RoomPhase.COMBAT
                             && !manager.turnHasEnded) {
-                        System.out.println("[STS-AI-DEBUG] 执行结束回合时手牌数: " + player.hand.size());
                         System.out.println("[STS-AI-ACTION] 执行 END_TURN 动作");
                         AbstractDungeon.overlayMenu.endTurnButton.disable(true);
                         player.isEndingTurn = true;
@@ -291,6 +308,14 @@ public class StsAIBridge {
                     } else {
                         // 对于非指向性卡牌（SELF, ALL_ENEMY, NONE 等），忽略 target_index
                         // target 保持为 null 即可
+                    }
+                    if (!card.hasEnoughEnergy()) {
+                        System.out.println("[STS-AI-ACTION] Energy insufficient for " + card.cardID);
+                        continue;
+                    }
+                    if (!card.cardPlayable(target)) {
+                        System.out.println("[STS-AI-ACTION] Card not playable: " + card.cardID + " (Target: " + (target != null ? target.name : "null") + ")");
+                        continue;
                     }
                     System.out.println("[STS-AI-ACTION] 执行 PLAY_CARD 动作: " + card.cardID + " -> " + (target != null ? target.name : "null"));
                     AbstractDungeon.actionManager.cardQueue.add(new CardQueueItem(card, target, card.energyOnUse, true, true));
@@ -353,8 +378,32 @@ public class StsAIBridge {
                      if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.MAP) {
                          int x = action.getCardIndex(); // Reuse card_index as X
                          int y = action.getTargetIndex(); // Reuse target_index as Y
-                         // Map click logic is complex, involves input simulation or direct node selection
-                         System.out.println("[STS-AI-ACTION] CHOOSE_MAP_NODE: " + x + "," + y + " (Logic pending map click simulation)");
+                         
+                         boolean found = false;
+                         if (AbstractDungeon.map != null) {
+                             for (ArrayList<MapRoomNode> row : AbstractDungeon.map) {
+                                 for (MapRoomNode node : row) {
+                                     if (node.x == x && node.y == y) {
+                                         // Hard transition logic
+                                         AbstractDungeon.nextRoom = node;
+                                         AbstractDungeon.pathX.add(x);
+                                         AbstractDungeon.pathY.add(y);
+                                         AbstractDungeon.nextRoomTransitionStart();
+                                         if (AbstractDungeon.dungeonMapScreen != null) {
+                                             AbstractDungeon.dungeonMapScreen.dismissable = true;
+                                             AbstractDungeon.closeCurrentScreen();
+                                         }
+                                         System.out.println("[STS-AI-ACTION] CHOOSE_MAP_NODE executed: " + x + "," + y);
+                                         found = true;
+                                         break;
+                                     }
+                                 }
+                                 if (found) break;
+                             }
+                         }
+                         if (!found) {
+                             System.out.println("[STS-AI-ACTION] Map node not found: " + x + "," + y);
+                         }
                      }
                 }
             }
@@ -595,13 +644,70 @@ public class StsAIBridge {
                     if (AbstractDungeon.shopScreen != null) {
                         ShopState.Builder shopBuilder = ShopState.newBuilder()
                                 .setCurrentGold(AbstractDungeon.player.gold)
-                                .setPurgeCost(ShopScreen.actualPurgeCost); // Use static actualPurgeCost
-                                
-                        // Shop Cards logic requires reflection or access wideners usually, 
-                        // but let's try direct access if public fields allow, otherwise we might need a workaround.
-                        // AbstractDungeon.shopScreen doesn't expose card lists publicly in base game.
-                        // We might need to rely on the fact that we are in the shop room or use reflection.
-                        // For now, let's leave shop lists empty to avoid compilation error until we verify access.
+                                .setPurgeCost(ShopScreen.actualPurgeCost);
+
+                        // Reflection for Relics
+                        ArrayList<?> relics = getPrivateField(AbstractDungeon.shopScreen, "relics", ArrayList.class);
+                        if (relics != null) {
+                            for (Object sr : relics) {
+                                AbstractRelic r = getPrivateField(sr, "relic", AbstractRelic.class);
+                                Integer price = getPrivateField(sr, "price", Integer.class);
+                                if (r != null && price != null) {
+                                    shopBuilder.addRelics(RelicState.newBuilder()
+                                            .setId(r.relicId)
+                                            .setName(r.name)
+                                            .setPrice(price)
+                                            .build());
+                                }
+                            }
+                        }
+
+                        // Reflection for Potions
+                        ArrayList<?> potions = getPrivateField(AbstractDungeon.shopScreen, "potions", ArrayList.class);
+                        if (potions != null) {
+                            for (Object sp : potions) {
+                                AbstractPotion p = getPrivateField(sp, "potion", AbstractPotion.class);
+                                Integer price = getPrivateField(sp, "price", Integer.class);
+                                if (p != null && price != null) {
+                                    shopBuilder.addPotions(PotionState.newBuilder()
+                                            .setId(p.ID)
+                                            .setName(p.name)
+                                            .setPrice(price)
+                                            .build());
+                                }
+                            }
+                        }
+
+                        // Reflection for Cards
+                        ArrayList<?> coloredCards = getPrivateField(AbstractDungeon.shopScreen, "coloredCards", ArrayList.class);
+                        ArrayList<?> colorlessCards = getPrivateField(AbstractDungeon.shopScreen, "colorlessCards", ArrayList.class);
+                        
+                        if (coloredCards != null) {
+                            for (Object o : coloredCards) {
+                                if (o instanceof AbstractCard) {
+                                    AbstractCard c = (AbstractCard) o;
+                                    shopBuilder.addCards(CardState.newBuilder()
+                                            .setId(c.cardID)
+                                            .setName(c.name)
+                                            .setPrice(c.price)
+                                            .setType(c.type.name())
+                                            .build());
+                                }
+                            }
+                        }
+                        if (colorlessCards != null) {
+                            for (Object o : colorlessCards) {
+                                if (o instanceof AbstractCard) {
+                                    AbstractCard c = (AbstractCard) o;
+                                    shopBuilder.addCards(CardState.newBuilder()
+                                            .setId(c.cardID)
+                                            .setName(c.name)
+                                            .setPrice(c.price)
+                                            .setType(c.type.name())
+                                            .build());
+                                }
+                            }
+                        }
                         
                         gameStateBuilder.setShop(shopBuilder.build());
                     }
@@ -610,16 +716,34 @@ public class StsAIBridge {
                      // Collect Rest Site
                      if (AbstractDungeon.getCurrRoom() instanceof com.megacrit.cardcrawl.rooms.RestRoom) {
                          com.megacrit.cardcrawl.rooms.RestRoom restRoom = (com.megacrit.cardcrawl.rooms.RestRoom) AbstractDungeon.getCurrRoom();
+                         RestSiteState.Builder restBuilder = RestSiteState.newBuilder()
+                                 .setHealAmount((int)(AbstractDungeon.player.maxHealth * 0.3f));
+
                          if (restRoom.campfireUI != null) {
-                             // campfireUI options are private/protected usually. 
-                             // We might need to check the buttons via reflection or assume based on relics.
-                             // For simplicity/stability in V1, we set basic flags.
-                             RestSiteState.Builder restBuilder = RestSiteState.newBuilder()
-                                     .setHasRest(true)
-                                     .setHasSmith(true)
-                                     .setHealAmount((int)(AbstractDungeon.player.maxHealth * 0.3f)); // Approx
-                             gameStateBuilder.setRestSite(restBuilder.build());
+                              ArrayList<?> buttons = getPrivateField(restRoom.campfireUI, "buttons", ArrayList.class);
+                              if (buttons != null) {
+                                  for (Object opt : buttons) {
+                                      String optClass = opt.getClass().getSimpleName();
+                                      boolean usable = true;
+                                      try {
+                                          Field f = opt.getClass().getDeclaredField("usable");
+                                          f.setAccessible(true);
+                                          usable = f.getBoolean(opt);
+                                     } catch (Exception e) {
+                                         // If field not found, assume true or check superclass if needed
+                                     }
+                                     
+                                     if (usable) {
+                                         if (optClass.contains("RestOption")) restBuilder.setHasRest(true);
+                                         else if (optClass.contains("SmithOption")) restBuilder.setHasSmith(true);
+                                         else if (optClass.contains("LiftOption")) restBuilder.setHasLift(true);
+                                         else if (optClass.contains("TokeOption")) restBuilder.setHasToke(true);
+                                         else if (optClass.contains("DigOption")) restBuilder.setHasDig(true);
+                                     }
+                                 }
+                             }
                          }
+                         gameStateBuilder.setRestSite(restBuilder.build());
                      }
                 } else if (AbstractDungeon.getCurrRoom() != null && AbstractDungeon.getCurrRoom().phase == AbstractRoom.RoomPhase.COMBAT) {
                     screenType = "COMBAT";
