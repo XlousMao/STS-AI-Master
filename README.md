@@ -35,11 +35,12 @@ STS-AI-Master/
 ├── docs/                     # 项目灵魂：协议定义与架构文档
 │   ├── protocols/            # .proto 契约文件 (真理来源)
 │   └── dev_logs/             # 每日开发日志与 Debug 记录
-├── sts-bridge-mod/           # [Java] 游戏数据拦截 Mod
-├── training-engine/          # [Python] 强化学习训练引擎 (Gym/PPO)
-├── qt-decision-client/       # [C++] Qt/ONNX 落地推理客户端
-├── cloud-backend/            # [Flask] 云端数据同步与策略中心
-└── tools/                    # 自动化脚本工具箱 (一键编译/无头启动)
+38→├── sts-bridge-mod/           # [Java] 游戏数据拦截 Mod
+39→├── training-engine/          # [Python] 强化学习训练引擎 (Gym/PPO)
+40→├── qt-decision-client/       # [C++] Qt/ONNX 落地推理客户端
+41→├── cloud-backend/            # [Flask] 云端数据同步与策略中心
+42→├── gym_sts/                  # [Python] 独立 Gymnasium 环境封装包 (SlayTheSpireEnv)
+43→└── tools/                    # 自动化脚本工具箱 (一键编译/无头启动)
 ```
 
 ---
@@ -104,6 +105,11 @@ cd C:\Projects\GitHub\STS-AI-Master
     - Monsters：ID、Name、HP、Max HP、Intent、Block。
   - 在当前版本中进一步扩展观测空间，包含 Master Deck、游戏结局摘要（胜利 / 死亡、近似得分、进阶等级）以及商店与篝火的关键占位信息，满足强化学习对长程收益与经济策略的建模需求。
   - 通过 `[STS-AI-PROTO]` 与 `[STS-AI-ACTION]` 日志为 Python / Qt 侧提供稳定的外部观测与动作回放入口，为后续 Gym 环境与训练闭环打基础。
+- Stage 2：Gymnasium 环境封装与训练就绪 —— **进行中**
+  - 新增独立的 `gym_sts` 包，基于 Gym (0.26+) 与 Stable Baselines3 封装标准化的 `SlayTheSpireEnv`（Dict 观测空间 + Discrete 动作空间 + 动作掩码）。
+  - 提供 `test_single_episode.py`、`train_ppo.py`、`validate_model.py` 三个脚本，分别用于单局调试、PPO 训练示例与可视化验证。
+  - 在 Python 侧固定关键依赖版本：`protobuf==3.20.x`、`numpy<2.0.0`，确保与现有 Protobuf 生成代码及 Gym 生态兼容。
+  - 修正 Java 端出牌逻辑，使用 `AbstractPlayer.useCard` 执行 `PLAY_CARD`，保证能量消耗、手牌移除与遗物/力量触发与原版行为一致。
 
 ---
 
@@ -155,7 +161,7 @@ cd C:\Projects\GitHub\STS-AI-Master
 | Phase | 名称                             | 说明                                                                                         | 状态     |
 |-------|----------------------------------|----------------------------------------------------------------------------------------------|----------|
 | 0     | 协议定义与 Java Mod Bridge      | 设计跨语言 Protobuf 协议，搭建 Mod 拦截层与结构化状态采样通路（含 Shade + Relocation）     | 已完成   |
-| 1     | Python 训练引擎                  | 构建 Gymnasium 环境封装与 PPO 训练流水线，打通多进程采样到训练闭环                         | 规划中   |
+| 1     | Python 训练引擎                  | 构建 Gymnasium 环境封装与 PPO 训练流水线，打通多进程采样到训练闭环                         | 进行中   |
 | 2     | Qt 决策客户端                    | 基于 ONNX Runtime 的本地推理客户端与可视化面板                                              | 规划中   |
 | 3     | 大规模训练与评估                 | 多环境并行训练、策略评估与对比实验工具链                                                    | 规划中   |
 | 4     | 云端策略中心与数据同步           | 云端数据存储、策略管理与下发，支撑多终端共享策略                                            | 规划中   |
@@ -182,6 +188,13 @@ Phase 0 聚焦于协议定义与 Java Mod 工程，目前已完成基础协议�
     - 使用 `netstat -ano | findstr 9999` 确认端口占用情况，如有残留进程，使用 `taskkill /PID <pid> /F` 清理。
     - 确认 STS-AI Bridge Mod 已成功加载，并在控制台看到 `[STS-AI-SOCKET] Listening on port 9999` 日志。
     - 检查防火墙或杀毒软件是否拦截本地回环连接。
+
+- Gym / NumPy 兼容性：
+  - 现象：
+    - 运行 Gym 环境时出现 `module 'numpy' has no attribute 'bool8'` 或大量关于 NumPy 2.x 的兼容性警告。
+  - 快速检查：
+    - 使用 `pip show numpy` 查看版本，建议固定在 `< 2.0.0`（如 `1.26.x`）以保持与 Gym 0.26 兼容。
+    - 如需使用 Gymnasium，请参考官方迁移文档，将 `import gym` 替换为 `import gymnasium as gym` 并适配 API 差异。
 
 ---
 

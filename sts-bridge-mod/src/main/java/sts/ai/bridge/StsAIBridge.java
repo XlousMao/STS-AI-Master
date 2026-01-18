@@ -306,8 +306,6 @@ public class StsAIBridge {
                             continue;
                         }
                     } else {
-                        // 对于非指向性卡牌（SELF, ALL_ENEMY, NONE 等），忽略 target_index
-                        // target 保持为 null 即可
                     }
                     if (!card.hasEnoughEnergy()) {
                         System.out.println("[STS-AI-ACTION] Energy insufficient for " + card.cardID);
@@ -318,7 +316,9 @@ public class StsAIBridge {
                         continue;
                     }
                     System.out.println("[STS-AI-ACTION] 执行 PLAY_CARD 动作: " + card.cardID + " -> " + (target != null ? target.name : "null"));
-                    AbstractDungeon.actionManager.cardQueue.add(new CardQueueItem(card, target, card.energyOnUse, true, true));
+                    int energyOnUse = player.energy.energy;
+                    card.energyOnUse = energyOnUse;
+                    player.useCard(card, target, energyOnUse);
                     return;
                 } else if ("CHOOSE_REWARD".equals(action.getActionType())) {
                     if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.COMBAT_REWARD) {

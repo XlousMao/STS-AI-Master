@@ -1,0 +1,4 @@
+run_mode: headless
+port: 9999
+normalize_obs: true
+seed: 42
