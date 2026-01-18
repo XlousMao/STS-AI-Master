@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * STS-AI Bridge Mod 入口类。
@@ -39,6 +40,7 @@ public class StsAIBridge {
     private static volatile Socket clientSocket;
     private static volatile DataInputStream clientIn;
     private static volatile DataOutputStream clientOut;
+    private static final ConcurrentLinkedQueue<GameAction> actionQueue = new ConcurrentLinkedQueue<>();
 
     /**
      * 数据采样的时间间隔（毫秒）。
@@ -164,7 +166,8 @@ public class StsAIBridge {
                     }
                     try {
                         GameAction action = GameAction.parseFrom(payload);
-                        System.out.println("[STS-AI-ACTION] Received GameAction: " + action.toString());
+                        actionQueue.add(action);
+                        System.out.println("[STS-AI-ACTION] Enqueued GameAction: " + action.toString());
                     } catch (Exception e) {
                         System.out.println("[STS-AI-ACTION] Failed to parse GameAction: " + e.getMessage());
                     }
@@ -210,55 +213,58 @@ public class StsAIBridge {
             if (AbstractDungeon.player == null) {
                 return;
             }
+            GameAction action;
+            while ((action = actionQueue.poll()) != null) {
+                System.out.println("[STS-AI-ACTION] 准备执行队列中的动作: " + action.toString());
+            }
             long now = System.currentTimeMillis();
-            if (now - lastLogTime < LOG_INTERVAL_MS) {
-                return;
-            }
-            lastLogTime = now;
-            PlayerState playerState = PlayerState.newBuilder()
-                    .setHp(AbstractDungeon.player.currentHealth)
-                    .setMaxHp(AbstractDungeon.player.maxHealth)
-                    .setGold(AbstractDungeon.player.gold)
-                    .setEnergy(AbstractDungeon.player.energy.energy)
-                    .setBlock(AbstractDungeon.player.currentBlock)
-                    .setFloor(AbstractDungeon.floorNum)
-                    .build();
+            if (now - lastLogTime >= LOG_INTERVAL_MS) {
+                lastLogTime = now;
+                PlayerState playerState = PlayerState.newBuilder()
+                        .setHp(AbstractDungeon.player.currentHealth)
+                        .setMaxHp(AbstractDungeon.player.maxHealth)
+                        .setGold(AbstractDungeon.player.gold)
+                        .setEnergy(AbstractDungeon.player.energy.energy)
+                        .setBlock(AbstractDungeon.player.currentBlock)
+                        .setFloor(AbstractDungeon.floorNum)
+                        .build();
 
-            GameState.Builder gameStateBuilder = GameState.newBuilder()
-                    .setPlayer(playerState);
+                GameState.Builder gameStateBuilder = GameState.newBuilder()
+                        .setPlayer(playerState);
 
-            if (AbstractDungeon.getMonsters() != null && AbstractDungeon.getMonsters().monsters != null) {
-                for (AbstractMonster m : AbstractDungeon.getMonsters().monsters) {
-                    if (m == null) {
-                        continue;
+                if (AbstractDungeon.getMonsters() != null && AbstractDungeon.getMonsters().monsters != null) {
+                    for (AbstractMonster m : AbstractDungeon.getMonsters().monsters) {
+                        if (m == null) {
+                            continue;
+                        }
+                        MonsterState monsterState = MonsterState.newBuilder()
+                                .setId(m.id)
+                                .setName(m.name)
+                                .setHp(m.currentHealth)
+                                .setMaxHp(m.maxHealth)
+                                .setIntent(m.intent != null ? m.intent.name() : "")
+                                .setBlock(m.currentBlock)
+                                .build();
+                        gameStateBuilder.addMonsters(monsterState);
                     }
-                    MonsterState monsterState = MonsterState.newBuilder()
-                            .setId(m.id)
-                            .setName(m.name)
-                            .setHp(m.currentHealth)
-                            .setMaxHp(m.maxHealth)
-                            .setIntent(m.intent != null ? m.intent.name() : "")
-                            .setBlock(m.currentBlock)
-                            .build();
-                    gameStateBuilder.addMonsters(monsterState);
                 }
-            }
 
-            GameState gameState = gameStateBuilder.build();
-            System.out.println("[STS-AI-PROTO] " + gameState.toString());
-            DataOutputStream out = clientOut;
-            if (out == null) {
-                return;
-            }
-            byte[] payload = gameState.toByteArray();
-            try {
-                out.writeInt(payload.length);
-                out.write(payload);
-                out.flush();
-            } catch (IOException e) {
-                System.out.println("[STS-AI-SOCKET] Send failed: " + e.getMessage());
-                synchronized (StsAIBridge.class) {
-                    closeClientQuietly();
+                GameState gameState = gameStateBuilder.build();
+                System.out.println("[STS-AI-PROTO] " + gameState.toString());
+                DataOutputStream out = clientOut;
+                if (out == null) {
+                    return;
+                }
+                byte[] payload = gameState.toByteArray();
+                try {
+                    out.writeInt(payload.length);
+                    out.write(payload);
+                    out.flush();
+                } catch (IOException e) {
+                    System.out.println("[STS-AI-SOCKET] Send failed: " + e.getMessage());
+                    synchronized (StsAIBridge.class) {
+                        closeClientQuietly();
+                    }
                 }
             }
         }
