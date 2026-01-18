@@ -1,0 +1,50 @@
+
+# OS / 编辑器通用忽略
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.iml
+
+# Python（training-engine 等）
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+venv/
+.venv/
+env/
+.env/
+
+# Java / Maven
+**/target/
+*.log
+hs_err_pid*.log
+
+# C++ / Qt / CMake
+build/
+cmake-build-*/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/CTestTestfile.cmake
+**/cmake_install.cmake
+*.obj
+*.o
+*.exe
+*.dll
+*.so
+*.dylib
+
+# 训练生成模型与大文件（避免误提交）
+training-engine/models/*.pth
+training-engine/models/*.pt
+training-engine/models/*.onnx
+
+# 本地工具 / 临时文件
+*.tmp
+*.bak
+*.orig
