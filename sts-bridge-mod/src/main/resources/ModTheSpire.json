@@ -1,0 +1,11 @@
+{
+  "modid": "sts-ai-bridge",
+  "name": "STS AI Bridge Mod",
+  "author_list": ["XlousMao"],
+  "description": "Bridge for RL training.",
+  "version": "1.0.0",
+  "sts_version": "12-18-2022",
+  "mts_version": "3.30.3",
+  "dependencies": ["basemod", "stslib"]
+}
+
