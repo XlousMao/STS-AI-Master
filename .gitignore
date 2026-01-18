@@ -24,6 +24,7 @@ env/
 **/target/
 *.log
 hs_err_pid*.log
+sts-bridge-mod/libs/
 
 # C++ / Qt / CMake
 build/
