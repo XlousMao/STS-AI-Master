@@ -10,6 +10,11 @@ import sts.ai.state.v1.GameState;
 import sts.ai.state.v1.MonsterState;
 import sts.ai.state.v1.PlayerState;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
 /**
  * STS-AI Bridge Mod 入口类。
  * 负责：
@@ -25,6 +30,11 @@ public class StsAIBridge {
      * 注意：任何地方使用前必须判空，否则在日志系统未就绪时可能导致 NPE。
      */
     private static Logger logger;
+
+    private static volatile boolean socketServerStarted = false;
+    private static ServerSocket serverSocket;
+    private static volatile Socket clientSocket;
+    private static volatile DataOutputStream clientOut;
 
     /**
      * 数据采样的时间间隔（毫秒）。
@@ -45,6 +55,63 @@ public class StsAIBridge {
         if (logger != null) {
             logger.info("[STS-AI] Bridge Project Initialized! Ready for Training.");
         }
+        if (!socketServerStarted) {
+            socketServerStarted = true;
+            Thread t = new Thread(new SocketServerRunnable());
+            t.setDaemon(true);
+            t.setName("STS-AI-SocketServer");
+            t.start();
+        }
+    }
+
+    private static class SocketServerRunnable implements Runnable {
+        @Override
+        public void run() {
+            try {
+                serverSocket = new ServerSocket(9999);
+                System.out.println("[STS-AI-SOCKET] Listening on port 9999");
+                while (true) {
+                    Socket socket = serverSocket.accept();
+                    System.out.println("[STS-AI-SOCKET] Client connected: " + socket.getRemoteSocketAddress());
+                    synchronized (StsAIBridge.class) {
+                        closeClientQuietly();
+                        clientSocket = socket;
+                        clientOut = new DataOutputStream(socket.getOutputStream());
+                    }
+                }
+            } catch (IOException e) {
+                System.out.println("[STS-AI-SOCKET] Server error: " + e.getMessage());
+            } finally {
+                closeServerQuietly();
+            }
+        }
+    }
+
+    private static void closeClientQuietly() {
+        if (clientOut != null) {
+            try {
+                clientOut.close();
+            } catch (IOException ignored) {
+            }
+        }
+        if (clientSocket != null) {
+            try {
+                clientSocket.close();
+            } catch (IOException ignored) {
+            }
+        }
+        clientOut = null;
+        clientSocket = null;
+    }
+
+    private static void closeServerQuietly() {
+        if (serverSocket != null) {
+            try {
+                serverSocket.close();
+            } catch (IOException ignored) {
+            }
+        }
+        serverSocket = null;
     }
 
     /**
@@ -114,6 +181,21 @@ public class StsAIBridge {
 
             GameState gameState = gameStateBuilder.build();
             System.out.println("[STS-AI-PROTO] " + gameState.toString());
+            DataOutputStream out = clientOut;
+            if (out == null) {
+                return;
+            }
+            byte[] payload = gameState.toByteArray();
+            try {
+                out.writeInt(payload.length);
+                out.write(payload);
+                out.flush();
+            } catch (IOException e) {
+                System.out.println("[STS-AI-SOCKET] Send failed: " + e.getMessage());
+                synchronized (StsAIBridge.class) {
+                    closeClientQuietly();
+                }
+            }
         }
     }
 }
